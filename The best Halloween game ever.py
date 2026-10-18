@@ -1,7 +1,10 @@
 #Modules required
 from PIL import Image, ImageDraw
 import sys
+import os
 import pygame
+
+print(os.getcwd())
 
 def load_background(image_path, screen_size):
     try:
@@ -15,37 +18,11 @@ def load_background(image_path, screen_size):
         sys.exit(1)
 
 try:
-    art_image = pygame.image.load("Coloured Block.png").convert_alpha()
+    art_image = pygame.image.load("Coloured_Block.png")
 except pygame.error:
-    print("Error: Could not load 'custom_art.png'. Make sure the file exists.")
+    print("Error: Could not load 'Coloured Block.png'. Make sure the file exists.")
     pygame.quit()
     sys.exit()
-
-def create_tessellated_mask(shape_points, texture_path, size):
-    mask_img = Image.new("RGB", size, (0, 0, 0, 0))
-    texture = Image.open(texture_path).convert("RGB")
-    tex_w, tex_h = texture.size
-    for y in range(0, size[1], tex_h):
-        for x in range(0, size[0], tex_w):
-            mask_img.paste(texture, (x, y))
-    poly_mask = Image.new("L", size, 0)
-    draw = ImageDraw.Draw(poly_mask)
-    draw.polygon(shape_points, fill=255)
-    mask_img.putalpha(poly_mask)
-    return mask_img
- 
-def pil_to_pygame(pil_image):
-    mode = pil_image.mode
-    size = pil_image.size
-    data = pil_image.tobytes()
-    return pygame.image.fromstring(data, size, mode)
-
-art_image = pygame.transform.scale(art_image, (100, 100))
-mask_surface = pygame.Surface((200, 200), pygame.SRCALPHA)
-pygame.draw.circle(mask_surface, (255, 255, 255, 255), (100, 100), 100)
-final_surface = pygame.Surface((200, 200), pygame.SRCALPHA)
-final_surface.blit(art_image, (0, 0))
-final_surface.blit(mask_surface, (0, 0), special_flags=pygame.BLEND_RGB_MIN)
 
 pygame.init()
 screen_size = (800, 600)
@@ -54,7 +31,29 @@ background = load_background("Coloured Bricks.png", screen_size)
 time = pygame.time.Clock()
 
 gameplay = [
-    pygame.Rect(400, 300, 500, 300)
+    pygame.Rect(400, 300, 100, 100),
+    pygame.Rect(500, 300, 100, 100),
+    pygame.Rect(600, 300, 100, 100),
+    pygame.Rect(700, 300, 100, 100),
+    pygame.Rect(800, 300, 100, 100),
+
+    pygame.Rect(400, 400, 100, 100),
+    pygame.Rect(500, 400, 100, 100),
+    pygame.Rect(600, 400, 100, 100),
+    pygame.Rect(700, 400, 100, 100),
+    pygame.Rect(800, 400, 100, 100),
+
+    pygame.Rect(400, 500, 100, 100),
+    pygame.Rect(500, 500, 100, 100),
+    pygame.Rect(600, 500, 100, 100),
+    pygame.Rect(700, 500, 100, 100),
+    pygame.Rect(800, 500, 100, 100),
+
+    pygame.Rect(400, 600, 100, 100),
+    pygame.Rect(500, 600, 100, 100),
+    pygame.Rect(600, 600, 100, 100),
+    pygame.Rect(700, 600, 100, 100),
+    pygame.Rect(800, 600, 100, 100),
 ]
 
 running = True
@@ -70,8 +69,7 @@ while running:
 
     #Gameplay
     for rect in gameplay:
-        pygame.draw.rect(screen, (0, 50, 0), rect)
-    screen.blit(final_surface, (150, 150))
+        screen.blit(art_image, rect.topleft)
     key = pygame.key.get_pressed()
     if key[pygame.K_a] == True:
         for rect in gameplay:
