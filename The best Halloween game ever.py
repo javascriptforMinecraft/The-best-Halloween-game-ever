@@ -23,7 +23,7 @@ pygame.init()
 screen_size = (800, 600)
 screen = pygame.display.set_mode(screen_size)
 background = load_background("Coloured Bricks.png", screen_size)
-time = pygame.time.Clock()
+clock = pygame.time.Clock()
 
 #Art
 def load_art(art):
@@ -95,18 +95,26 @@ while running:
             rect.move_ip(3, 0)
     elif key[pygame.K_w] == True and isJumping == False:
         isJumping = True
-        for height in range(200):
-            time.sleep(0.0025)
-            bob.move_ip(0, -1)
-    if isJumping == True:
+        velocity_y = -jump_speed
+    if isJumping:
         velocity_y += gravity
-        bob.y += velocity_y
-    if bob.y >= ground_y:
-        bob.y = ground_y
+    previous_bottom = bob.bottom
+    bob.y += velocity_y
+    for rect in gameplay:
+        if bob.colliderect(rect):
+            if velocity_y > 0 and previous_bottom <= rect.top:
+                bob.bottom = rect.top
+                velocity_y = 0
+                isJumping = False
+            elif velocity_y < 0 and bob.top >= rect.bottom:
+                bob.top = rect.bottom
+                velocity_y = 0
+    if bob.bottom >= 600:
+        bob.bottom = 600
         velocity_y = 0
         isJumping = False
 
     pygame.display.flip()
-    time.tick(60)
+    clock.tick(60)
 
 pygame.quit()
