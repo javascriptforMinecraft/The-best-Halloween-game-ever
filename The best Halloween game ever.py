@@ -2,6 +2,7 @@
 from PIL import Image
 import sys
 import os
+import time
 import pygame
 
 
@@ -63,7 +64,12 @@ gameplay = [
     pygame.Rect(900, 600, 100, 100),
 ]
 
-bob = pygame.Rect(400, 600, 100, 100)
+bob = pygame.Rect(300, 500, 100, 100)
+isJumping = False
+jump_speed = 15
+gravity = 0.8
+velocity_y = 0
+ground_y = 500
 
 running = True
 while running:
@@ -87,6 +93,18 @@ while running:
     elif key[pygame.K_d] == True:
         for rect in gameplay:
             rect.move_ip(3, 0)
+    elif key[pygame.K_w] == True and isJumping == False:
+        isJumping = True
+        for height in range(200):
+            time.sleep(0.0025)
+            bob.move_ip(0, -1)
+    if isJumping == True:
+        velocity_y += gravity
+        bob.y += velocity_y
+    if bob.y >= ground_y:
+        bob.y = ground_y
+        velocity_y = 0
+        isJumping = False
 
     pygame.display.flip()
     time.tick(60)
