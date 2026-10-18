@@ -36,6 +36,10 @@ gameplay_art = load_art("Coloured_Block.png")
 bob_art = load_art("BOB.png")
 crouching_art = load_art("BOB_crouch.png")
 
+#SFX
+jump_sfx = pygame.mixer.Sound("Jump.mp3")
+landing_sfx = pygame.mixer.Sound("Landing.mp3")
+
 #Objects
 gameplay = [
     pygame.Rect(800, 200, 100, 100),
@@ -81,6 +85,7 @@ while running:
         screen.blit(gameplay_art, rect.topleft)
     screen.blit(bob_art, bob.topleft)
     key = pygame.key.get_pressed()
+
     scroll_x = 0
     if key[pygame.K_a]:
         scroll_x = 3
@@ -96,7 +101,9 @@ while running:
     if can_scroll:
         for rect in gameplay:
             rect.move_ip(scroll_x, 0)
+
     if key[pygame.K_w] == True and on_ground == True:
+        jump_sfx.play()
         velocity_y = -jump_speed
         on_ground = False
         isJumping = True
@@ -110,6 +117,7 @@ while running:
                 bob.bottom = rect.top
                 velocity_y = 0
                 on_ground = True
+                landing_sfx.play()
                 isJumping = False
             elif velocity_y < 0 and previous.top >= rect.bottom:
                 bob.top = rect.bottom
@@ -118,6 +126,7 @@ while running:
         bob.bottom = 600
         velocity_y = 0
         on_ground = True
+        landing_sfx.play()
         isJumping = False
     previous = bob.copy()
     for rect in gameplay:
