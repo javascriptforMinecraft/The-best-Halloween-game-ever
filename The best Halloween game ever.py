@@ -39,13 +39,13 @@ crouching_art = load_art("BOB_crouch.png")
 
 #Objects
 gameplay = [
-    pygame.Rect(500, 300, 100, 100),
-    pygame.Rect(600, 300, 100, 100),
+    pygame.Rect(800, 200, 100, 100),
+    pygame.Rect(900, 200, 100, 100),
+
     pygame.Rect(700, 300, 100, 100),
     pygame.Rect(800, 300, 100, 100),
     pygame.Rect(900, 300, 100, 100),
 
-    pygame.Rect(500, 400, 100, 100),
     pygame.Rect(600, 400, 100, 100),
     pygame.Rect(700, 400, 100, 100),
     pygame.Rect(800, 400, 100, 100),
@@ -56,16 +56,11 @@ gameplay = [
     pygame.Rect(700, 500, 100, 100),
     pygame.Rect(800, 500, 100, 100),
     pygame.Rect(900, 500, 100, 100),
-
-    pygame.Rect(500, 600, 100, 100),
-    pygame.Rect(600, 600, 100, 100),
-    pygame.Rect(700, 600, 100, 100),
-    pygame.Rect(800, 600, 100, 100),
-    pygame.Rect(900, 600, 100, 100),
 ]
 
 bob = pygame.Rect(300, 500, 100, 100)
 isJumping = False
+on_ground = True
 jump_speed = 15
 gravity = 0.8
 velocity_y = 0
@@ -87,32 +82,51 @@ while running:
         screen.blit(gameplay_art, rect.topleft)
     screen.blit(bob_art, bob.topleft)
     key = pygame.key.get_pressed()
-    if key[pygame.K_a] == True:
+    scroll_x = 0
+    if key[pygame.K_a]:
+        scroll_x = 3
+    elif key[pygame.K_d]:
+        scroll_x = -3
+    can_scroll = True
+    if scroll_x != 0:
         for rect in gameplay:
-            rect.move_ip(-3, 0)
-    elif key[pygame.K_d] == True:
+            future_rect = rect.move(scroll_x, 0)
+            if bob.colliderect(future_rect):
+                can_scroll = False
+                break
+    if can_scroll:
         for rect in gameplay:
-            rect.move_ip(3, 0)
-    elif key[pygame.K_w] == True and isJumping == False:
-        isJumping = True
+            rect.move_ip(scroll_x, 0)
+    if key[pygame.K_w] == True and on_ground == True:
         velocity_y = -jump_speed
-    if isJumping:
-        velocity_y += gravity
-    previous_bottom = bob.bottom
+        on_ground = False
+        isJumping = True
+    velocity_y += gravity
+    previous = bob.copy()
     bob.y += velocity_y
+    on_ground = False
     for rect in gameplay:
         if bob.colliderect(rect):
-            if velocity_y > 0 and previous_bottom <= rect.top:
+            if velocity_y >= 0 and previous.bottom <= rect.top:
                 bob.bottom = rect.top
                 velocity_y = 0
+                on_ground = True
                 isJumping = False
-            elif velocity_y < 0 and bob.top >= rect.bottom:
+            elif velocity_y < 0 and previous.top >= rect.bottom:
                 bob.top = rect.bottom
                 velocity_y = 0
     if bob.bottom >= 600:
         bob.bottom = 600
         velocity_y = 0
+        on_ground = True
         isJumping = False
+    previous = bob.copy()
+    for rect in gameplay:
+        if bob.colliderect(rect):
+            if previous.right <= rect.left:
+                bob.right = rect.left
+            elif previous.left >= rect.right:
+                bob.left = rect.right
 
     pygame.display.flip()
     clock.tick(60)
