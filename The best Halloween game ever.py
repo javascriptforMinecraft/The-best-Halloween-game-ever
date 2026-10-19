@@ -62,6 +62,7 @@ gameplay = [
 ]
 
 bob = pygame.Rect(300, 500, 100, 100)
+bobs_hitbox = pygame.Rect(300, 500, 75, 100)
 isJumping = False
 on_ground = True
 jump_speed = 15
@@ -107,34 +108,39 @@ while running:
         velocity_y = -jump_speed
         on_ground = False
         isJumping = True
+    was_on_ground = on_ground
     velocity_y += gravity
-    previous = bob.copy()
-    bob.y += velocity_y
+    previous = bobs_hitbox.copy()
+    bobs_hitbox.y += velocity_y
     on_ground = False
     for rect in gameplay:
-        if bob.colliderect(rect):
+        if bobs_hitbox.colliderect(rect):
             if velocity_y >= 0 and previous.bottom <= rect.top:
-                bob.bottom = rect.top
+                bobs_hitbox.bottom = rect.top
                 velocity_y = 0
                 on_ground = True
                 landing_sfx.play()
                 isJumping = False
             elif velocity_y < 0 and previous.top >= rect.bottom:
-                bob.top = rect.bottom
+                bobs_hitbox.top = rect.bottom
                 velocity_y = 0
-    if bob.bottom >= 600:
-        bob.bottom = 600
-        velocity_y = 0
-        on_ground = True
-        landing_sfx.play()
-        isJumping = False
-    previous = bob.copy()
+    if bobs_hitbox.bottom >= 600:
+        if velocity_y >= 0 and previous.bottom <= rect.top:
+            bobs_hitbox.bottom = rect.top
+            velocity_y = 0
+            on_ground = True
+            isJumping = False
+
+            if not was_on_ground:
+                landing_sfx.play()
+        
+    previous = bobs_hitbox.copy()
     for rect in gameplay:
-        if bob.colliderect(rect):
+        if bobs_hitbox.colliderect(rect):
             if previous.right <= rect.left:
-                bob.right = rect.left
+                bobs_hitbox.right = rect.left
             elif previous.left >= rect.right:
-                bob.left = rect.right
+                bobs_hitbox.left = rect.right
 
     pygame.display.flip()
     clock.tick(60)
