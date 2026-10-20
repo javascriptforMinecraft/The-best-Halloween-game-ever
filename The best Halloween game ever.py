@@ -36,6 +36,7 @@ gameplay_art = load_art("Coloured_Block.png")
 bob_art = load_art("BOB.png")
 crouching_art = load_art("BOB_crouch.png")
 button_art = load_art("Button.png")
+passable_art = load_art("Passable block.png")
 
 #SFX
 jump_sfx = pygame.mixer.Sound("Jump.mp3")
@@ -53,6 +54,12 @@ wall0 = [
 
 buttons = [
     pygame.Rect(1313, 400, 74, 40)
+]
+
+passable_gameplay = [
+    pygame.Rect(2200, 500, 100, 20),
+    pygame.Rect(2200, 400, 100, 20),
+    pygame.Rect(2200, 300, 100, 20)
 ]
 
 gameplay = [
@@ -84,6 +91,23 @@ gameplay = [
     pygame.Rect(1700, 150, 100, 100),
     pygame.Rect(1700, 50, 100, 100),
     pygame.Rect(1700, -50, 100, 100),
+
+    pygame.Rect(2300, 250, 100, 100),
+    pygame.Rect(2400, 250, 100, 100),
+    pygame.Rect(2500, 250, 100, 100),
+    pygame.Rect(2600, 250, 100, 100),
+    pygame.Rect(2300, 350, 100, 100),
+    pygame.Rect(2400, 350, 100, 100),
+    pygame.Rect(2500, 350, 100, 100),
+    pygame.Rect(2600, 350, 100, 100),
+    pygame.Rect(2300, 450, 100, 100),
+    pygame.Rect(2400, 450, 100, 100),
+    pygame.Rect(2500, 450, 100, 100),
+    pygame.Rect(2600, 450, 100, 100),
+    pygame.Rect(2300, 550, 100, 100),
+    pygame.Rect(2400, 550, 100, 100),
+    pygame.Rect(2500, 550, 100, 100),
+    pygame.Rect(2600, 550, 100, 100),
 
 ]
 gameplay.extend(wall0)
@@ -175,6 +199,13 @@ while running:
             bobs_hitbox.top = rect.bottom
             velocity_y = 0
 
+    for rect in passable_gameplay:
+        # Only land when falling onto the top from above
+        if (velocity_y >= 0 and previous.bottom <= rect.top and bobs_hitbox.bottom >= rect.top and bobs_hitbox.right > rect.left and bobs_hitbox.left < rect.right):
+            bobs_hitbox.bottom = rect.top
+            velocity_y = 0
+            on_ground = True
+
     if bobs_hitbox.bottom >= screen_size[1]:
         bobs_hitbox.bottom = screen_size[1]
         velocity_y = 0
@@ -189,6 +220,8 @@ while running:
         screen.blit(gameplay_art, rect.topleft)
     for rect in buttons:
         screen.blit(button_art, rect.topleft)
+    for rect in passable_gameplay:
+        screen.blit(passable_art, rect.topleft)
     if isCrouching == True:
         current_art = crouching_art
     else:
