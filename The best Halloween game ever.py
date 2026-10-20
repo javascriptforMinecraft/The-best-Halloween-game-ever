@@ -35,12 +35,26 @@ def load_art(art):
 gameplay_art = load_art("Coloured_Block.png")
 bob_art = load_art("BOB.png")
 crouching_art = load_art("BOB_crouch.png")
+button_art = load_art("Button.png")
 
 #SFX
 jump_sfx = pygame.mixer.Sound("Jump.mp3")
 landing_sfx = pygame.mixer.Sound("Landing.mp3")
 
 #Objects
+wall0 = [
+    pygame.Rect(2000, 0, 100, 100),
+    pygame.Rect(2000, 100, 100, 100),
+    pygame.Rect(2000, 200, 100, 100),
+    pygame.Rect(2000, 300, 100, 100),
+    pygame.Rect(2000, 400, 100, 100),
+    pygame.Rect(2000, 500, 100, 100),
+]
+
+buttons = [
+    pygame.Rect(1313, 400, 74, 40)
+]
+
 gameplay = [
     pygame.Rect(800, 200, 100, 100),
     pygame.Rect(900, 200, 100, 100),
@@ -69,8 +83,10 @@ gameplay = [
     pygame.Rect(1600, 150, 100, 100),
     pygame.Rect(1700, 150, 100, 100),
     pygame.Rect(1700, 50, 100, 100),
-    pygame.Rect(1700, -50, 100, 100)
+    pygame.Rect(1700, -50, 100, 100),
+
 ]
+gameplay.extend(wall0)
 
 bob = pygame.Rect(300, 500, 100, 100)
 normal_hitbox_height = 100
@@ -97,9 +113,7 @@ while running:
 
     was_on_ground = on_ground
 
-    # Crouching: preserve the bottom of the hitbox
     crouch_request = key[pygame.K_s] and on_ground
-
     if crouch_request == True:
         isCrouching = True
     else:
@@ -122,20 +136,22 @@ while running:
     bobs_hitbox.bottom = old_bottom
 
     scroll_x = 0
-    if key[pygame.K_a]:
+    if key[pygame.K_a] == True:
         scroll_x = 5
-    elif key[pygame.K_d]:
+    elif key[pygame.K_d] == True:
         scroll_x = -5
     if scroll_x != 0:
         can_scroll = True
         for rect in gameplay:
             future_rect = rect.move(scroll_x, 0)
-            if bobs_hitbox.colliderect(future_rect):
+            if bobs_hitbox.colliderect(future_rect) == True:
                 can_scroll = False
                 break
 
         if can_scroll == True:
             for rect in gameplay:
+                rect.move_ip(scroll_x, 0)
+            for rect in buttons:
                 rect.move_ip(scroll_x, 0)
 
     if key[pygame.K_w] == True and on_ground == True and isCrouching == False:
@@ -149,7 +165,7 @@ while running:
     on_ground = False
 
     for rect in gameplay:
-        if not bobs_hitbox.colliderect(rect):
+        if bobs_hitbox.colliderect(rect) == False:
             continue
         if velocity_y >= 0 and previous.bottom <= rect.top:
             bobs_hitbox.bottom = rect.top
@@ -171,13 +187,21 @@ while running:
 
     for rect in gameplay:
         screen.blit(gameplay_art, rect.topleft)
-    if isCrouching:
+    for rect in buttons:
+        screen.blit(button_art, rect.topleft)
+    if isCrouching == True:
         current_art = crouching_art
     else:
         current_art = bob_art
     art_x = bobs_hitbox.centerx - current_art.get_width() // 2
     art_y = bobs_hitbox.bottom - current_art.get_height()
     screen.blit(current_art, (art_x, art_y))
+
+    if bobs_hitbox.colliderect(buttons[0]) == True:
+        for rect in wall0:
+            if rect in gameplay:
+                gameplay.remove(rect)
+        wall0.clear()
 
     pygame.display.flip()
     clock.tick(60)
