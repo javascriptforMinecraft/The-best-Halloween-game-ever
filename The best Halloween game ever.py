@@ -177,6 +177,8 @@ while running:
                 rect.move_ip(scroll_x, 0)
             for rect in buttons:
                 rect.move_ip(scroll_x, 0)
+            for rect in passable_gameplay:
+                rect.move_ip(scroll_x, 0)
 
     if key[pygame.K_w] == True and on_ground == True and isCrouching == False:
         velocity_y = -jump_speed
