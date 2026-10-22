@@ -21,7 +21,7 @@ def load_background(image_path, screen_size):
 pygame.init()
 screen_size = (800, 600)
 screen = pygame.display.set_mode(screen_size)
-background = load_background("House background.jpg", screen_size)
+background = load_background("Outside.png", screen_size)
 clock = pygame.time.Clock()
 
 #Art
@@ -36,6 +36,7 @@ gameplay_art = load_art("Crate.png")
 bob_art = load_art("BOB.png")
 crouching_art = load_art("BOB_crouch.png")
 button_art = load_art("Button.png")
+button_art = pygame.transform.rotate(button_art, 90)
 passable_art = load_art("Passable crate.png")
 
 #SFX
@@ -48,16 +49,14 @@ wall0 = [
     pygame.Rect(2000, 100, 100, 100),
     pygame.Rect(2000, 200, 100, 100),
     pygame.Rect(2000, 300, 100, 100),
-    pygame.Rect(2000, 400, 100, 100),
-    pygame.Rect(2000, 500, 100, 100),
+    pygame.Rect(2000, 400, 100, 100)
 ]
 
 buttons = [
-    pygame.Rect(1313, 400, 74, 40)
+    pygame.Rect(1313, 400, 40, 74)
 ]
 
 passable_gameplay = [
-    pygame.Rect(2200, 500, 100, 20),
     pygame.Rect(2200, 400, 100, 20),
     pygame.Rect(2200, 300, 100, 20)
 ]
@@ -72,13 +71,7 @@ gameplay = [
     pygame.Rect(700, 400, 100, 100),
     pygame.Rect(800, 400, 100, 100),
     pygame.Rect(900, 400, 100, 100),
-    pygame.Rect(500, 500, 100, 100),
-    pygame.Rect(600, 500, 100, 100),
-    pygame.Rect(700, 500, 100, 100),
-    pygame.Rect(800, 500, 100, 100),
-    pygame.Rect(900, 500, 100, 100),
 
-    pygame.Rect(1200, 500, 100, 100),
     pygame.Rect(1200, 400, 100, 100),
     pygame.Rect(1200, 300, 100, 100),
     pygame.Rect(1300, 300, 100, 100),
@@ -92,27 +85,23 @@ gameplay = [
     pygame.Rect(1700, 50, 100, 100),
     pygame.Rect(1700, -50, 100, 100),
 
-    pygame.Rect(2300, 250, 100, 100),
-    pygame.Rect(2400, 250, 100, 100),
-    pygame.Rect(2500, 250, 100, 100),
-    pygame.Rect(2600, 250, 100, 100),
-    pygame.Rect(2300, 350, 100, 100),
-    pygame.Rect(2400, 350, 100, 100),
-    pygame.Rect(2500, 350, 100, 100),
-    pygame.Rect(2600, 350, 100, 100),
-    pygame.Rect(2300, 450, 100, 100),
-    pygame.Rect(2400, 450, 100, 100),
-    pygame.Rect(2500, 450, 100, 100),
-    pygame.Rect(2600, 450, 100, 100),
-    pygame.Rect(2300, 550, 100, 100),
-    pygame.Rect(2400, 550, 100, 100),
-    pygame.Rect(2500, 550, 100, 100),
-    pygame.Rect(2600, 550, 100, 100),
+    pygame.Rect(2300, 200, 100, 100),
+    pygame.Rect(2400, 200, 100, 100),
+    pygame.Rect(2500, 200, 100, 100),
+    pygame.Rect(2600, 200, 100, 100),
+    pygame.Rect(2300, 300, 100, 100),
+    pygame.Rect(2400, 300, 100, 100),
+    pygame.Rect(2500, 300, 100, 100),
+    pygame.Rect(2600, 300, 100, 100),
+    pygame.Rect(2300, 400, 100, 100),
+    pygame.Rect(2400, 400, 100, 100),
+    pygame.Rect(2500, 400, 100, 100),
+    pygame.Rect(2600, 400, 100, 100),
 
 ]
 gameplay.extend(wall0)
 
-bob = pygame.Rect(300, 500, 100, 100)
+bob = pygame.Rect(300, 400, 100, 100)
 normal_hitbox_height = 100
 crouch_hitbox_height = 50
 hitbox_width = 75
@@ -208,8 +197,8 @@ while running:
             velocity_y = 0
             on_ground = True
 
-    if bobs_hitbox.bottom >= screen_size[1]:
-        bobs_hitbox.bottom = screen_size[1]
+    if bobs_hitbox.bottom >= screen_size[1] - 100:
+        bobs_hitbox.bottom = screen_size[1] - 100
         velocity_y = 0
         on_ground = True
 
