@@ -43,10 +43,10 @@ passable_art = load_art("Passable crate.png")
 #SFX
 jump_sfx = pygame.mixer.Sound("Jump.mp3")
 landing_sfx = pygame.mixer.Sound("Landing.mp3")
+raining_sfx = pygame.mixer.Sound("Raining.mp3")
 
 #Objects
 raining_area = pygame.Rect(2800, 0, 10, 600)
-pygame.draw.rect(screen, (0, 255, 0), raining_area)
 
 wall0 = [
     pygame.Rect(2000, 0, 100, 100),
@@ -57,7 +57,7 @@ wall0 = [
 ]
 
 buttons = [
-    pygame.Rect(1313, 400, 40, 74)
+    pygame.Rect(1300, 413, 40, 74)
 ]
 
 passable_gameplay = [
@@ -117,6 +117,7 @@ gravity = 0.8
 velocity_y = 0
 
 running = True
+isRaining = False
 while running:
     # Events
     for event in pygame.event.get():
@@ -127,29 +128,6 @@ while running:
 
     # Background
     screen.blit(background, (0, 0))
-
-    def raining():
-        rain = []
-        for k in range(150):
-            x = random.randint(0, screen_size[0])
-            y = random.randint(0, screen_size[1])
-            speed = random.randint(8, 15)
-            length = random.randint(8, 18)
-            rain.append([x, y, speed, length])
-            for drop in rain:
-                drop[1] += drop[2]  # Move rain down
-                if drop[1] > screen_size[1]:
-                    drop[0] = random.randint(0, screen_size[0])
-                    drop[1] = random.randint(-20, -5)
-                pygame.draw.line(
-                    screen,
-                    (150, 180, 220),
-                    (drop[0], drop[1]),
-                    (drop[0] - 3, drop[1] + drop[3]),
-                    2
-                )
-    if bob.colliderect(raining_area) == True:
-        raining()
 
     was_on_ground = on_ground
 
@@ -195,6 +173,7 @@ while running:
                 rect.move_ip(scroll_x, 0)
             for rect in passable_gameplay:
                 rect.move_ip(scroll_x, 0)
+            raining_area.move_ip(scroll_x, 0)
 
     if key[pygame.K_w] == True and on_ground == True and isCrouching == False:
         velocity_y = -jump_speed
@@ -253,6 +232,32 @@ while running:
             if rect in gameplay:
                 gameplay.remove(rect)
         wall0.clear()
+
+    def raining():
+            rain = []
+            for k in range(150):
+                x = random.randint(0, screen_size[0])
+                y = random.randint(0, screen_size[1])
+                speed = random.randint(8, 15)
+                length = random.randint(8, 18)
+                rain.append([x, y, speed, length])
+            for drop in rain:
+                drop[1] += drop[2]  # Move rain down
+                if drop[1] > screen_size[1] - 100:
+                    drop[0] = random.randint(0, screen_size[0])
+                    drop[1] = random.randint(-20, -5)
+                pygame.draw.line(
+                    screen,
+                    (150, 180, 220),
+                    (drop[0], drop[1]),
+                    (drop[0] - 3, drop[1] + drop[3]),
+                    2
+                )
+    if bob.colliderect(raining_area) == True and isRaining == False:
+        raining_sfx.play(-1)
+        isRaining = True
+    if isRaining == True:
+        raining()
 
     pygame.display.flip()
     clock.tick(60)
