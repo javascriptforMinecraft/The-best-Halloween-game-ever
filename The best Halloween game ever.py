@@ -36,7 +36,7 @@ gameplay_art = load_art("Crate.png")
 bob_art = load_art("BOB.png")
 crouching_art = load_art("BOB_crouch.png")
 button_art = load_art("Button.png")
-passable_art = load_art("Passable block.png")
+passable_art = load_art("Passable crate.png")
 
 #SFX
 jump_sfx = pygame.mixer.Sound("Jump.mp3")
