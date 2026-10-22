@@ -32,7 +32,7 @@ def load_art(art):
         print(f"Error: Could not load '{art}'. {e}")
         pygame.quit()
         sys.exit()
-gameplay_art = load_art("Coloured_Block.png")
+gameplay_art = load_art("Crate.png")
 bob_art = load_art("BOB.png")
 crouching_art = load_art("BOB_crouch.png")
 button_art = load_art("Button.png")
