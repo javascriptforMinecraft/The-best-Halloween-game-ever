@@ -2,6 +2,7 @@
 from PIL import Image
 import sys
 import os
+import random
 import pygame
 
 
@@ -44,6 +45,9 @@ jump_sfx = pygame.mixer.Sound("Jump.mp3")
 landing_sfx = pygame.mixer.Sound("Landing.mp3")
 
 #Objects
+raining_area = pygame.Rect(2800, 0, 10, 600)
+pygame.draw.rect(screen, (0, 255, 0), raining_area)
+
 wall0 = [
     pygame.Rect(2000, 0, 100, 100),
     pygame.Rect(2000, 100, 100, 100),
@@ -123,6 +127,29 @@ while running:
 
     # Background
     screen.blit(background, (0, 0))
+
+    def raining():
+        rain = []
+        for k in range(150):
+            x = random.randint(0, screen_size[0])
+            y = random.randint(0, screen_size[1])
+            speed = random.randint(8, 15)
+            length = random.randint(8, 18)
+            rain.append([x, y, speed, length])
+            for drop in rain:
+                drop[1] += drop[2]  # Move rain down
+                if drop[1] > screen_size[1]:
+                    drop[0] = random.randint(0, screen_size[0])
+                    drop[1] = random.randint(-20, -5)
+                pygame.draw.line(
+                    screen,
+                    (150, 180, 220),
+                    (drop[0], drop[1]),
+                    (drop[0] - 3, drop[1] + drop[3]),
+                    2
+                )
+    if bob.colliderect(raining_area) == True:
+        raining()
 
     was_on_ground = on_ground
 
