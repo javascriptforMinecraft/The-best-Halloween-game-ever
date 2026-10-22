@@ -21,7 +21,7 @@ def load_background(image_path, screen_size):
 pygame.init()
 screen_size = (800, 600)
 screen = pygame.display.set_mode(screen_size)
-background = load_background("Coloured Bricks.png", screen_size)
+background = load_background("House background.jpg", screen_size)
 clock = pygame.time.Clock()
 
 #Art
