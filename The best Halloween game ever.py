@@ -62,6 +62,7 @@ jump_sfx = pygame.mixer.Sound("Jump.mp3")
 landing_sfx = pygame.mixer.Sound("Landing.mp3")
 raining_sfx = pygame.mixer.Sound("Raining.mp3")
 click_sfx = pygame.mixer.Sound("Button clicked.mp3")
+thunder_sfx = pygame.mixer.Sound("Thunder.mp3")
 
 #Objects
 raining_area = pygame.Rect(3000, 0, 10, 600)
@@ -284,13 +285,14 @@ while running:
                 2
             )
         lightning_timer = pygame.time.get_ticks()
-        if lightning_timer - remainder_time >= 3000:
+        if lightning_timer - remainder_time >= 5000:
             lightning_strike = random.randint(0, 5)
             lightning_backgrounds = [
                 lightning1, lightning2, lightning3,
                 lightning4, lightning5, lightning6
             ]
             outside = lightning_backgrounds[lightning_strike]
+            thunder_sfx.play()
             lightning_active = True
             lightning_end_time = lightning_timer + lightning_duration
             remainder_time = lightning_timer
