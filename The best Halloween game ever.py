@@ -20,6 +20,11 @@ def load_background(image_path, screen_size):
 
 #Initialisation
 pygame.init()
+pygame.font.init()
+font = pygame.font.SysFont("Retro Pixel", 20)
+instruction1 = font.render("W to jump", False, (255, 255, 255))
+instruction2 = font.render("A/D to move left/right", False, (255, 255, 255))
+instruction3 = font.render("S to crouch", False, (255, 255, 255))
 screen_size = (800, 600)
 screen = pygame.display.set_mode(screen_size)
 background = load_background("Outside.png", screen_size)
@@ -46,7 +51,7 @@ landing_sfx = pygame.mixer.Sound("Landing.mp3")
 raining_sfx = pygame.mixer.Sound("Raining.mp3")
 
 #Objects
-raining_area = pygame.Rect(2800, 0, 10, 600)
+raining_area = pygame.Rect(3000, 0, 10, 600)
 
 wall0 = [
     pygame.Rect(2000, 0, 100, 100),
@@ -119,15 +124,16 @@ velocity_y = 0
 running = True
 isRaining = False
 while running:
-    # Events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
     key = pygame.key.get_pressed()
 
-    # Background
     screen.blit(background, (0, 0))
+    screen.blit(instruction1, (200, 300))
+    screen.blit(instruction2, (200, 330))
+    screen.blit(instruction3, (200, 360))
 
     was_on_ground = on_ground
 
@@ -197,7 +203,6 @@ while running:
             velocity_y = 0
 
     for rect in passable_gameplay:
-        # Only land when falling onto the top from above
         if (velocity_y >= 0 and previous.bottom <= rect.top and bobs_hitbox.bottom >= rect.top and bobs_hitbox.right > rect.left and bobs_hitbox.left < rect.right):
             bobs_hitbox.bottom = rect.top
             velocity_y = 0
@@ -242,7 +247,7 @@ while running:
                 length = random.randint(8, 18)
                 rain.append([x, y, speed, length])
             for drop in rain:
-                drop[1] += drop[2]  # Move rain down
+                drop[1] += drop[2]
                 if drop[1] > screen_size[1] - 100:
                     drop[0] = random.randint(0, screen_size[0])
                     drop[1] = random.randint(-20, -5)
