@@ -21,10 +21,13 @@ def load_background(image_path, screen_size):
 #Initialisation
 pygame.init()
 pygame.font.init()
-font = pygame.font.SysFont("Retro Pixel", 20)
-instruction1 = font.render("W to jump", False, (255, 255, 255))
-instruction2 = font.render("A/D to move left/right", False, (255, 255, 255))
-instruction3 = font.render("S to crouch", False, (255, 255, 255))
+font = pygame.font.SysFont("Retro Pixel", 30)
+instruction_jump = font.render("W to jump", False, (255, 255, 255))
+instruction_jump_rect = instruction_jump.get_rect(topleft = (200, 300))
+instruction_move = font.render("A/D to move left/right", False, (255, 255, 255))
+instruction_move_rect = instruction_move.get_rect(topleft = (200, 330))
+instruction_crouch = font.render("S to crouch", False, (255, 255, 255))
+instruction_crouch_rect = instruction_crouch.get_rect(topleft = (200, 360))
 screen_size = (800, 600)
 screen = pygame.display.set_mode(screen_size)
 background = load_background("Outside.png", screen_size)
@@ -131,9 +134,6 @@ while running:
     key = pygame.key.get_pressed()
 
     screen.blit(background, (0, 0))
-    screen.blit(instruction1, (200, 300))
-    screen.blit(instruction2, (200, 330))
-    screen.blit(instruction3, (200, 360))
 
     was_on_ground = on_ground
 
@@ -180,6 +180,9 @@ while running:
             for rect in passable_gameplay:
                 rect.move_ip(scroll_x, 0)
             raining_area.move_ip(scroll_x, 0)
+            instruction_jump_rect.x += scroll_x
+            instruction_move_rect.x += scroll_x
+            instruction_crouch_rect.x += scroll_x
 
     if key[pygame.K_w] == True and on_ground == True and isCrouching == False:
         velocity_y = -jump_speed
@@ -218,6 +221,9 @@ while running:
 
     bob.midbottom = bobs_hitbox.midbottom
 
+    screen.blit(instruction_jump, instruction_jump_rect)
+    screen.blit(instruction_move, instruction_move_rect)
+    screen.blit(instruction_crouch, instruction_crouch_rect)
     for rect in gameplay:
         screen.blit(gameplay_art, rect.topleft)
     for rect in buttons:
