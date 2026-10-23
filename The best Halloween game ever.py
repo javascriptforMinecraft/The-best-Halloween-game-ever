@@ -30,7 +30,8 @@ instruction_crouch = font.render("S to crouch", False, (255, 255, 255))
 instruction_crouch_rect = instruction_crouch.get_rect(topleft = (200, 360))
 screen_size = (800, 600)
 screen = pygame.display.set_mode(screen_size)
-background = load_background("Outside.png", screen_size)
+outside = load_background("Outside.png", screen_size)
+stormy_outside = load_background("Stormy.png", screen_size)
 clock = pygame.time.Clock()
 
 #Art
@@ -133,7 +134,7 @@ while running:
 
     key = pygame.key.get_pressed()
 
-    screen.blit(background, (0, 0))
+    screen.blit(outside, (0, 0))
 
     was_on_ground = on_ground
 
@@ -266,6 +267,7 @@ while running:
                 )
     if bob.colliderect(raining_area) == True and isRaining == False:
         raining_sfx.play(-1)
+        outside = stormy_outside
         isRaining = True
     if isRaining == True:
         raining()
