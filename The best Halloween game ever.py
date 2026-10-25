@@ -65,6 +65,7 @@ landing_sfx = pygame.mixer.Sound("Landing.mp3")
 raining_sfx = pygame.mixer.Sound("Raining.mp3")
 click_sfx = pygame.mixer.Sound("Button clicked.mp3")
 thunder_sfx = pygame.mixer.Sound("Thunder.mp3")
+balcony_creaking_sfx = pygame.mixer.Sound("Balcony creaking.mp3")
 
 #Objects
 darkness = pygame.Surface((800, 600))
@@ -139,6 +140,7 @@ balcony = [
 ]
 
 camera_change = pygame.Rect(3670, 0, 10, 600)
+transition_rect = pygame.Rect(4200, 0, 10, 600)
 
 bob = pygame.Rect(300, 400, 100, 100)
 normal_hitbox_height = 100
@@ -166,11 +168,29 @@ lightning_duration = 200
 lightning_active = False
 lightning_end_time = 0
 camera_locked = False
+transitioning = False
+balcony_falling = False
+balcony_fall_distance = 0
+balcony_fell = False
+creaking_played = False
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
+    def alpha_fade(surface, current_alpha, target_alpha, fade_speed):
+        if current_alpha < target_alpha:
+            current_alpha = min(
+                current_alpha + fade_speed,
+                target_alpha
+            )
+        elif current_alpha > target_alpha:
+            current_alpha = max(
+                current_alpha - fade_speed,
+                target_alpha
+        )
+        surface.set_alpha(int(current_alpha))
+        return current_alpha
     key = pygame.key.get_pressed()
 
     screen.blit(outside, (0, 0))
@@ -201,35 +221,42 @@ while running:
 
     if bobs_hitbox.colliderect(camera_change) == True:
         camera_locked = True
+    if bobs_hitbox.colliderect(transition_rect) == True:
+        transitioning = True
+        if creaking_played == False:
+            creaking_played = True
+            creaking_channel = balcony_creaking_sfx.play()
+        if creaking_channel.get_busy() == False:
+            balcony_falling = True
+        if balcony_fell == True:
+            alpha_fade(darkness, darkness.get_alpha(), 255, 4)
     scroll_x = 0
-    if key[pygame.K_a] == True:
-        scroll_x = 5
-    elif key[pygame.K_d] == True:
-        scroll_x = -5
-    if scroll_x != 0:
-        if camera_locked == True:
-            future_hitbox = bobs_hitbox.move(-scroll_x, 0)
-            if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + house):
-                bobs_hitbox.x -= scroll_x
-        else:
-            can_scroll = True
-            for rect in gameplay:
-                future_rect = rect.move(scroll_x, 0)
-                if bobs_hitbox.colliderect(future_rect) == True:
-                    can_scroll = False
-                    break
+    if transitioning == False:
+        if key[pygame.K_a] == True:
+            scroll_x = 5
+        elif key[pygame.K_d] == True:
+            scroll_x = -5
+        if scroll_x != 0:
+            if camera_locked == True:
+                future_hitbox = bobs_hitbox.move(-scroll_x, 0)
+                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + house):
+                    bobs_hitbox.x -= scroll_x
+            else:
+                can_scroll = True
+                for rect in gameplay:
+                    future_rect = rect.move(scroll_x, 0)
+                    if bobs_hitbox.colliderect(future_rect) == True:
+                        can_scroll = False
+                        break
 
-            if can_scroll == True:
-                for rect in gameplay + buttons + passable_gameplay + house + balcony:
-                    rect.move_ip(scroll_x, 0)
-                raining_area.move_ip(scroll_x, 0)
-                door.move_ip(scroll_x, 0)
-                camera_change.move_ip(scroll_x, 0)
-                instruction_jump_rect.x += scroll_x
-                instruction_move_rect.x += scroll_x
-                instruction_crouch_rect.x += scroll_x
+                if can_scroll == True:
+                    for rect in gameplay + buttons + passable_gameplay + house + balcony + [raining_area] + [door] + [camera_change] + [transition_rect]:
+                        rect.move_ip(scroll_x, 0)
+                    instruction_jump_rect.x += scroll_x
+                    instruction_move_rect.x += scroll_x
+                    instruction_crouch_rect.x += scroll_x
 
-    if key[pygame.K_w] == True and on_ground == True and isCrouching == False:
+    if key[pygame.K_w] == True and on_ground == True and isCrouching == False and transitioning == False:
         velocity_y = -jump_speed
         on_ground = False
         jump_sfx.play()
@@ -266,6 +293,16 @@ while running:
 
     bob.midbottom = bobs_hitbox.midbottom
 
+    if balcony_falling == True:
+        fall_speed = 3
+        move_y = min(fall_speed, 200 - balcony_fall_distance)
+        for rect in balcony:
+            rect.y += move_y
+        balcony_fall_distance += move_y
+        if balcony_fall_distance >= 200:
+            balcony_falling = False
+            balcony_fell = True
+
     screen.blit(instruction_jump, instruction_jump_rect)
     screen.blit(instruction_move, instruction_move_rect)
     screen.blit(instruction_crouch, instruction_crouch_rect)
@@ -297,7 +334,8 @@ while running:
 
     def raining():
         global rain, outside, lightning_duration, lightning_active, lightning_end_time, remainder_time, darkness, gameplay, passable_gameplay
-        darkness.set_alpha(200)
+        if transitioning == False:
+            darkness.set_alpha(150)
         for drop in rain:
             drop[1] += drop[2]
             drop_rect = pygame.Rect(drop[0] - 3, drop[1], 4, drop[3])
@@ -315,23 +353,24 @@ while running:
                 (drop[0] - 3, drop[1] + drop[3]),
                 2
             )
-        lightning_timer = pygame.time.get_ticks()
-        if lightning_timer - remainder_time >= 5000:
-            lightning_strike = random.randint(0, 5)
-            lightning_backgrounds = [
-                lightning1, lightning2, lightning3,
-                lightning4, lightning5, lightning6
-            ]
-            outside = lightning_backgrounds[lightning_strike]
-            thunder_sfx.play()
-            lightning_active = True
-            darkness.set_alpha(0)
-            lightning_end_time = lightning_timer + lightning_duration
-            remainder_time = lightning_timer
-        if lightning_active and lightning_timer >= lightning_end_time:
-            outside = stormy_outside
-            lightning_active = False
-            darkness.set_alpha(200)
+        if transitioning == False:
+            lightning_timer = pygame.time.get_ticks()
+            if lightning_timer - remainder_time >= 5000:
+                lightning_strike = random.randint(0, 5)
+                lightning_backgrounds = [
+                    lightning1, lightning2, lightning3,
+                    lightning4, lightning5, lightning6
+                ]
+                outside = lightning_backgrounds[lightning_strike]
+                thunder_sfx.play()
+                lightning_active = True
+                darkness.set_alpha(0)
+                lightning_end_time = lightning_timer + lightning_duration
+                remainder_time = lightning_timer
+            if lightning_active and lightning_timer >= lightning_end_time:
+                outside = stormy_outside
+                lightning_active = False
+                darkness.set_alpha(150)
 
     if bob.colliderect(raining_area) == True and isRaining == False:
         raining_sfx.play(-1)
