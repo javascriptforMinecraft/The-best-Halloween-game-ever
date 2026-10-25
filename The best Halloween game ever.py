@@ -48,7 +48,7 @@ def load_art(art):
         print(f"Error: Could not load '{art}'. {e}")
         pygame.quit()
         sys.exit()
-gameplay_art = load_art("Crate.png")
+crate = load_art("Crate.png")
 bob_art = load_art("BOB.png")
 crouching_art = load_art("BOB_crouch.png")
 not_pressed_button_art = load_art("Button (not pressed).png")
@@ -56,6 +56,8 @@ not_pressed_button_art = pygame.transform.rotate(not_pressed_button_art, 90)
 pressed_button_art = load_art("Button (pressed).png")
 pressed_button_art = pygame.transform.rotate(pressed_button_art, 90)
 passable_art = load_art("Passable crate.png")
+balcony_art = load_art("Balcony.png")
+door_art = load_art("Door.png")
 
 #SFX
 jump_sfx = pygame.mixer.Sound("Jump.mp3")
@@ -65,6 +67,10 @@ click_sfx = pygame.mixer.Sound("Button clicked.mp3")
 thunder_sfx = pygame.mixer.Sound("Thunder.mp3")
 
 #Objects
+darkness = pygame.Surface((800, 600))
+darkness.fill((0, 0, 0))
+darkness.set_alpha(100)
+
 raining_area = pygame.Rect(3000, 0, 10, 600)
 
 wall0 = [
@@ -74,16 +80,13 @@ wall0 = [
     pygame.Rect(2000, 300, 100, 100),
     pygame.Rect(2000, 400, 100, 100)
 ]
-
 buttons = [
     pygame.Rect(1300, 413, 40, 74)
 ]
-
 passable_gameplay = [
     pygame.Rect(2200, 400, 100, 20),
     pygame.Rect(2200, 300, 100, 20)
 ]
-
 gameplay = [
     pygame.Rect(800, 200, 100, 100),
     pygame.Rect(900, 200, 100, 100),
@@ -124,6 +127,17 @@ gameplay = [
 ]
 gameplay.extend(wall0)
 
+house = [
+    pygame.Rect(4000, 0, 100, 100),
+    pygame.Rect(4000, 100, 100, 100),
+    pygame.Rect(4000, 200, 100, 100),
+]
+door = pygame.Rect(4000, 300, 100, 200)
+balcony = [
+    pygame.Rect(3800, 300, 100, 100),
+    pygame.Rect(3900, 300, 100, 100)
+]
+
 bob = pygame.Rect(300, 400, 100, 100)
 normal_hitbox_height = 100
 crouch_hitbox_height = 50
@@ -138,7 +152,7 @@ velocity_y = 0
 running = True
 isRaining = False
 clicked = False
-remainder_time = pygame.time.get_ticks()
+remainder_time = pygame.time.get_ticks() + 5000
 lightning_duration = 200
 lightning_active = False
 lightning_end_time = 0
@@ -189,11 +203,7 @@ while running:
                 break
 
         if can_scroll == True:
-            for rect in gameplay:
-                rect.move_ip(scroll_x, 0)
-            for rect in buttons:
-                rect.move_ip(scroll_x, 0)
-            for rect in passable_gameplay:
+            for rect in gameplay + buttons + passable_gameplay + house + balcony:
                 rect.move_ip(scroll_x, 0)
             raining_area.move_ip(scroll_x, 0)
             instruction_jump_rect.x += scroll_x
@@ -240,12 +250,15 @@ while running:
     screen.blit(instruction_jump, instruction_jump_rect)
     screen.blit(instruction_move, instruction_move_rect)
     screen.blit(instruction_crouch, instruction_crouch_rect)
-    for rect in gameplay:
-        screen.blit(gameplay_art, rect.topleft)
+    screen.blit(door_art, door)
+    for rect in gameplay + house:
+        screen.blit(crate, rect.topleft)
     for rect in buttons:
         screen.blit(not_pressed_button_art, rect.topleft)
     for rect in passable_gameplay:
         screen.blit(passable_art, rect.topleft)
+    for rect in balcony:
+        screen.blit(balcony_art, rect.topleft)
     if isCrouching == True:
         current_art = crouching_art
     else:
@@ -264,7 +277,8 @@ while running:
         clicked = True
 
     def raining():
-        global outside, lightning_duration, lightning_active, lightning_end_time, remainder_time
+        global outside, lightning_duration, lightning_active, lightning_end_time, remainder_time, darkness, gameplay, passable_gameplay
+        darkness.set_alpha(200)
         rain = []
         for k in range(150):
             x = random.randint(0, screen_size[0])
@@ -274,7 +288,12 @@ while running:
             rain.append([x, y, speed, length])
         for drop in rain:
             drop[1] += drop[2]
-            if drop[1] > screen_size[1] - 100:
+            drop_rect = pygame.Rect(drop[0] - 3, drop[1], 4, drop[3])
+            hit_block = any(
+                drop_rect.colliderect(block)
+                for block in gameplay + passable_gameplay
+            )
+            if hit_block or drop[1] > screen_size[1] - 100:
                 drop[0] = random.randint(0, screen_size[0])
                 drop[1] = random.randint(-20, -5)
             pygame.draw.line(
@@ -294,11 +313,13 @@ while running:
             outside = lightning_backgrounds[lightning_strike]
             thunder_sfx.play()
             lightning_active = True
+            darkness.set_alpha(0)
             lightning_end_time = lightning_timer + lightning_duration
             remainder_time = lightning_timer
         if lightning_active and lightning_timer >= lightning_end_time:
             outside = stormy_outside
             lightning_active = False
+            darkness.set_alpha(200)
 
     if bob.colliderect(raining_area) == True and isRaining == False:
         raining_sfx.play(-1)
@@ -306,6 +327,8 @@ while running:
         isRaining = True
     if isRaining == True:
         raining()
+
+    screen.blit(darkness, (0,0))
 
     pygame.display.flip()
     clock.tick(60)
