@@ -134,9 +134,11 @@ house = [
 ]
 door = pygame.Rect(4000, 300, 100, 200)
 balcony = [
-    pygame.Rect(3800, 300, 100, 100),
-    pygame.Rect(3900, 300, 100, 100)
+    pygame.Rect(3800, 200, 100, 100),
+    pygame.Rect(3900, 200, 100, 100)
 ]
+
+camera_change = pygame.Rect(3670, 0, 10, 600)
 
 bob = pygame.Rect(300, 400, 100, 100)
 normal_hitbox_height = 100
@@ -151,11 +153,19 @@ velocity_y = 0
 
 running = True
 isRaining = False
+rain = []
+for k in range(150):
+    x = random.randint(0, screen_size[0])
+    y = random.randint(0, 100)
+    speed = random.randint(8, 15)
+    length = random.randint(8, 18)
+    rain.append([x, y, speed, length])
 clicked = False
 remainder_time = pygame.time.get_ticks() + 5000
 lightning_duration = 200
 lightning_active = False
 lightning_end_time = 0
+camera_locked = False
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -189,26 +199,35 @@ while running:
         bobs_hitbox.height = normal_hitbox_height
     bobs_hitbox.bottom = old_bottom
 
+    if bobs_hitbox.colliderect(camera_change) == True:
+        camera_locked = True
     scroll_x = 0
     if key[pygame.K_a] == True:
         scroll_x = 5
     elif key[pygame.K_d] == True:
         scroll_x = -5
     if scroll_x != 0:
-        can_scroll = True
-        for rect in gameplay:
-            future_rect = rect.move(scroll_x, 0)
-            if bobs_hitbox.colliderect(future_rect) == True:
-                can_scroll = False
-                break
+        if camera_locked == True:
+            future_hitbox = bobs_hitbox.move(-scroll_x, 0)
+            if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + house):
+                bobs_hitbox.x -= scroll_x
+        else:
+            can_scroll = True
+            for rect in gameplay:
+                future_rect = rect.move(scroll_x, 0)
+                if bobs_hitbox.colliderect(future_rect) == True:
+                    can_scroll = False
+                    break
 
-        if can_scroll == True:
-            for rect in gameplay + buttons + passable_gameplay + house + balcony:
-                rect.move_ip(scroll_x, 0)
-            raining_area.move_ip(scroll_x, 0)
-            instruction_jump_rect.x += scroll_x
-            instruction_move_rect.x += scroll_x
-            instruction_crouch_rect.x += scroll_x
+            if can_scroll == True:
+                for rect in gameplay + buttons + passable_gameplay + house + balcony:
+                    rect.move_ip(scroll_x, 0)
+                raining_area.move_ip(scroll_x, 0)
+                door.move_ip(scroll_x, 0)
+                camera_change.move_ip(scroll_x, 0)
+                instruction_jump_rect.x += scroll_x
+                instruction_move_rect.x += scroll_x
+                instruction_crouch_rect.x += scroll_x
 
     if key[pygame.K_w] == True and on_ground == True and isCrouching == False:
         velocity_y = -jump_speed
@@ -220,7 +239,7 @@ while running:
     bobs_hitbox.y += round(velocity_y)
     on_ground = False
 
-    for rect in gameplay:
+    for rect in gameplay + balcony:
         if bobs_hitbox.colliderect(rect) == False:
             continue
         if velocity_y >= 0 and previous.bottom <= rect.top:
@@ -250,7 +269,7 @@ while running:
     screen.blit(instruction_jump, instruction_jump_rect)
     screen.blit(instruction_move, instruction_move_rect)
     screen.blit(instruction_crouch, instruction_crouch_rect)
-    screen.blit(door_art, door)
+    screen.blit(door_art, door.topleft)
     for rect in gameplay + house:
         screen.blit(crate, rect.topleft)
     for rect in buttons:
@@ -277,21 +296,14 @@ while running:
         clicked = True
 
     def raining():
-        global outside, lightning_duration, lightning_active, lightning_end_time, remainder_time, darkness, gameplay, passable_gameplay
+        global rain, outside, lightning_duration, lightning_active, lightning_end_time, remainder_time, darkness, gameplay, passable_gameplay
         darkness.set_alpha(200)
-        rain = []
-        for k in range(150):
-            x = random.randint(0, screen_size[0])
-            y = random.randint(0, screen_size[1])
-            speed = random.randint(8, 15)
-            length = random.randint(8, 18)
-            rain.append([x, y, speed, length])
         for drop in rain:
             drop[1] += drop[2]
             drop_rect = pygame.Rect(drop[0] - 3, drop[1], 4, drop[3])
             hit_block = any(
                 drop_rect.colliderect(block)
-                for block in gameplay + passable_gameplay
+                for block in gameplay + passable_gameplay + balcony
             )
             if hit_block or drop[1] > screen_size[1] - 100:
                 drop[0] = random.randint(0, screen_size[0])
