@@ -1,9 +1,28 @@
+#Modules required
 from PIL import Image
 import sys
 import os
 import random
 import pygame
 
+#Initialisation
+pygame.init()
+pygame.font.init()
+screen_size = (800, 600)
+screen = pygame.display.set_mode(screen_size)
+clock = pygame.time.Clock()
+pygame.mixer.set_num_channels(32)
+
+#Loading fonts and text objects
+font = pygame.font.SysFont("Retro Pixel", 30)
+instruction_jump = font.render("W to jump", False, (255, 255, 255))
+instruction_jump_rect = instruction_jump.get_rect(topleft = (200, 300))
+instruction_move = font.render("A/D to move left/right", False, (255, 255, 255))
+instruction_move_rect = instruction_move.get_rect(topleft = (200, 330))
+instruction_crouch = font.render("S to crouch", False, (255, 255, 255))
+instruction_crouch_rect = instruction_crouch.get_rect(topleft = (200, 360))
+
+#Loading background
 def load_background(image_path, screen_size):
     try:
         img = Image.open(image_path).convert("RGB")
@@ -15,20 +34,7 @@ def load_background(image_path, screen_size):
         print(f"Error loading background: {e}")
         sys.exit(1)
 
-pygame.init()
-pygame.font.init()
-
-font = pygame.font.SysFont("Retro Pixel", 30)
-instruction_jump = font.render("W to jump", False, (255, 255, 255))
-instruction_jump_rect = instruction_jump.get_rect(topleft = (200, 300))
-instruction_move = font.render("A/D to move left/right", False, (255, 255, 255))
-instruction_move_rect = instruction_move.get_rect(topleft = (200, 330))
-instruction_crouch = font.render("S to crouch", False, (255, 255, 255))
-instruction_crouch_rect = instruction_crouch.get_rect(topleft = (200, 360))
-
-screen_size = (800, 600)
-screen = pygame.display.set_mode(screen_size)
-
+#Loading backgrounds
 outside = load_background("Outside.png", screen_size)
 stormy_outside = load_background("Stormy.png", screen_size)
 lightning1 = load_background("Lightning1.png", screen_size)
@@ -38,8 +44,6 @@ lightning4 = load_background("Lightning4.png", screen_size)
 lightning5 = load_background("Lightning5.png", screen_size)
 lightning6 = load_background("Lightning6.png", screen_size)
 
-clock = pygame.time.Clock()
-
 #Art
 def load_art(art):
     try:
@@ -48,6 +52,8 @@ def load_art(art):
         print(f"Error: Could not load '{art}'. {e}")
         pygame.quit()
         sys.exit()
+
+#Loading art
 crate = load_art("Crate.png")
 bob_art = load_art("BOB.png")
 crouching_art = load_art("BOB_crouch.png")
@@ -66,6 +72,10 @@ raining_sfx = pygame.mixer.Sound("Raining.mp3")
 click_sfx = pygame.mixer.Sound("Button clicked.mp3")
 thunder_sfx = pygame.mixer.Sound("Thunder.mp3")
 balcony_creaking_sfx = pygame.mixer.Sound("Balcony creaking.mp3")
+creaking_channel = pygame.mixer.Channel(1)
+walking_grass = pygame.mixer.Sound("Walking on grass.mp3")
+landing_grass = pygame.mixer.Sound("Landing on grass.mp3")
+walking_wood = pygame.mixer.Sound("Walking on wood.mp3")
 
 #Objects
 darkness = pygame.Surface((800, 600))
@@ -142,6 +152,7 @@ balcony = [
 camera_change = pygame.Rect(3670, 0, 10, 600)
 transition_rect = pygame.Rect(4200, 0, 10, 600)
 
+#BOB
 bob = pygame.Rect(300, 400, 100, 100)
 normal_hitbox_height = 100
 crouch_hitbox_height = 50
@@ -153,6 +164,7 @@ jump_speed = 15
 gravity = 0.8
 velocity_y = 0
 
+#Pre-main loop variables
 running = True
 isRaining = False
 rain = []
@@ -173,11 +185,16 @@ balcony_falling = False
 balcony_fall_distance = 0
 balcony_fell = False
 creaking_played = False
+walking_channel = walking_grass.play()
+
+#Main loop
 while running:
+    #If game is quit
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
+    #Alpha fade function
     def alpha_fade(surface, current_alpha, target_alpha, fade_speed):
         if current_alpha < target_alpha:
             current_alpha = min(
@@ -191,12 +208,14 @@ while running:
         )
         surface.set_alpha(int(current_alpha))
         return current_alpha
+
+    #Detects which key was pressed
     key = pygame.key.get_pressed()
 
+    #Draw background
     screen.blit(outside, (0, 0))
 
-    was_on_ground = on_ground
-
+    #Crouch logic
     crouch_request = key[pygame.K_s] and on_ground
     if crouch_request == True:
         isCrouching = True
@@ -211,7 +230,6 @@ while running:
         )
         if not blocked_above:
             isCrouching = False
-
     old_bottom = bobs_hitbox.bottom
     if isCrouching == True:
         bobs_hitbox.height = crouch_hitbox_height
@@ -219,23 +237,42 @@ while running:
         bobs_hitbox.height = normal_hitbox_height
     bobs_hitbox.bottom = old_bottom
 
+    #Object interactions
     if bobs_hitbox.colliderect(camera_change) == True:
         camera_locked = True
     if bobs_hitbox.colliderect(transition_rect) == True:
         transitioning = True
+        walking_channel.stop()
         if creaking_played == False:
             creaking_played = True
-            creaking_channel = balcony_creaking_sfx.play()
+            creaking_channel.play(balcony_creaking_sfx)
         if creaking_channel.get_busy() == False:
             balcony_falling = True
         if balcony_fell == True:
             alpha_fade(darkness, darkness.get_alpha(), 255, 4)
+
+    #Left-Right movement
     scroll_x = 0
     if transitioning == False:
         if key[pygame.K_a] == True:
             scroll_x = 5
         elif key[pygame.K_d] == True:
             scroll_x = -5
+        isMoving = (key[pygame.K_a] or key[pygame.K_d]) and not transitioning
+        if isMoving:
+            if bobs_hitbox.bottom >= screen_size[1] - 100:
+                sound_to_play = walking_grass
+            else:
+                sound_to_play = walking_wood
+            if walking_channel.get_sound() != sound_to_play:
+                walking_channel.stop()
+                walking_channel = sound_to_play.play(-1)
+            elif not walking_channel.get_busy():
+                walking_channel = sound_to_play.play(-1)
+            else:
+                walking_channel.unpause()
+        else:
+            walking_channel.pause()
         if scroll_x != 0:
             if camera_locked == True:
                 future_hitbox = bobs_hitbox.move(-scroll_x, 0)
@@ -248,24 +285,26 @@ while running:
                     if bobs_hitbox.colliderect(future_rect) == True:
                         can_scroll = False
                         break
-
                 if can_scroll == True:
+
                     for rect in gameplay + buttons + passable_gameplay + house + balcony + [raining_area] + [door] + [camera_change] + [transition_rect]:
                         rect.move_ip(scroll_x, 0)
                     instruction_jump_rect.x += scroll_x
                     instruction_move_rect.x += scroll_x
                     instruction_crouch_rect.x += scroll_x
 
+    #Jump mechanic
+    was_on_ground = on_ground
     if key[pygame.K_w] == True and on_ground == True and isCrouching == False and transitioning == False:
         velocity_y = -jump_speed
         on_ground = False
         jump_sfx.play()
 
+    #Gravity
     previous = bobs_hitbox.copy()
     velocity_y += gravity
     bobs_hitbox.y += round(velocity_y)
     on_ground = False
-
     for rect in gameplay + balcony:
         if bobs_hitbox.colliderect(rect) == False:
             continue
@@ -276,23 +315,20 @@ while running:
         elif velocity_y < 0 and previous.top >= rect.bottom:
             bobs_hitbox.top = rect.bottom
             velocity_y = 0
-
     for rect in passable_gameplay:
         if (velocity_y >= 0 and previous.bottom <= rect.top and bobs_hitbox.bottom >= rect.top and bobs_hitbox.right > rect.left and bobs_hitbox.left < rect.right):
             bobs_hitbox.bottom = rect.top
             velocity_y = 0
             on_ground = True
-
     if bobs_hitbox.bottom >= screen_size[1] - 100:
         bobs_hitbox.bottom = screen_size[1] - 100
         velocity_y = 0
         on_ground = True
-
     if on_ground == True and was_on_ground == False:
         landing_sfx.play()
-
     bob.midbottom = bobs_hitbox.midbottom
 
+    #Falling baclony logic
     if balcony_falling == True:
         fall_speed = 3
         move_y = min(fall_speed, 200 - balcony_fall_distance)
@@ -302,7 +338,9 @@ while running:
         if balcony_fall_distance >= 200:
             balcony_falling = False
             balcony_fell = True
+            landing_grass.play()
 
+    #Drawing most of the custom art onscreen
     screen.blit(instruction_jump, instruction_jump_rect)
     screen.blit(instruction_move, instruction_move_rect)
     screen.blit(instruction_crouch, instruction_crouch_rect)
@@ -323,6 +361,7 @@ while running:
     art_y = bobs_hitbox.bottom - current_art.get_height()
     screen.blit(current_art, (art_x, art_y))
 
+    #Button collision
     if bobs_hitbox.colliderect(buttons[0]) == True and clicked == False:
         for rect in wall0:
             if rect in gameplay:
@@ -332,6 +371,7 @@ while running:
         click_sfx.play()
         clicked = True
 
+    #Raining function
     def raining():
         global rain, outside, lightning_duration, lightning_active, lightning_end_time, remainder_time, darkness, gameplay, passable_gameplay
         if transitioning == False:
@@ -353,6 +393,7 @@ while running:
                 (drop[0] - 3, drop[1] + drop[3]),
                 2
             )
+        #Lightning logic
         if transitioning == False:
             lightning_timer = pygame.time.get_ticks()
             if lightning_timer - remainder_time >= 5000:
@@ -372,6 +413,7 @@ while running:
                 lightning_active = False
                 darkness.set_alpha(150)
 
+    #Activate raining
     if bob.colliderect(raining_area) == True and isRaining == False:
         raining_sfx.play(-1)
         outside = stormy_outside
@@ -379,9 +421,12 @@ while running:
     if isRaining == True:
         raining()
 
+    #Darkness overlay
     screen.blit(darkness, (0,0))
 
+    #Refresh rate
     pygame.display.flip()
     clock.tick(60)
 
+#Once loop is exited
 pygame.quit()
