@@ -250,6 +250,7 @@ while running:
             balcony_falling = True
         if balcony_fell == True:
             alpha_fade(darkness, darkness.get_alpha(), 255, 4)
+            inHouse = True
 
     #Left-Right movement
     scroll_x = 0
