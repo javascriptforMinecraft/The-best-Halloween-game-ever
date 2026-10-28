@@ -1,5 +1,6 @@
 #Modules required
 from PIL import Image
+from pathlib import Path
 import sys
 import os
 import random
@@ -8,6 +9,8 @@ import pygame
 #Initialisation
 pygame.init()
 pygame.font.init()
+BASE_DIR = Path(__file__).resolve().parent
+ASSETS_DIR = BASE_DIR / "Assets"
 screen_size = (800, 600)
 screen = pygame.display.set_mode(screen_size)
 clock = pygame.time.Clock()
@@ -35,15 +38,15 @@ def load_background(image_path, screen_size):
         sys.exit(1)
 
 #Loading backgrounds
-outside = load_background("Outside.png", screen_size)
-stormy_outside = load_background("Stormy.png", screen_size)
-lightning1 = load_background("Lightning1.png", screen_size)
-lightning2 = load_background("Lightning2.png", screen_size)
-lightning3 = load_background("Lightning3.png", screen_size)
-lightning4 = load_background("Lightning4.png", screen_size)
-lightning5 = load_background("Lightning5.png", screen_size)
-lightning6 = load_background("Lightning6.png", screen_size)
-creepy_house = load_background("Creepy House.png", screen_size)
+outside = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Outside.png", screen_size)
+stormy_outside = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Stormy.png", screen_size)
+lightning1 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning1.png", screen_size)
+lightning2 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning2.png", screen_size)
+lightning3 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning3.png", screen_size)
+lightning4 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning4.png", screen_size)
+lightning5 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning5.png", screen_size)
+lightning6 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning6.png", screen_size)
+creepy_house = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Creepy House.png", screen_size)
 
 #Art
 def load_art(art):
@@ -55,28 +58,30 @@ def load_art(art):
         sys.exit()
 
 #Loading art
-crate = load_art("Crate.png")
-bob_art = load_art("BOB.png")
-crouching_art = load_art("BOB_crouch.png")
-not_pressed_button_art = load_art("Button (not pressed).png")
+crate = load_art(ASSETS_DIR / "Art" / "Objects" "Crate.png")
+not_pressed_button_art = load_art(ASSETS_DIR / "Art" / "Objects" "Button (not pressed).png")
 not_pressed_button_art = pygame.transform.rotate(not_pressed_button_art, 90)
-pressed_button_art = load_art("Button (pressed).png")
+pressed_button_art = load_art(ASSETS_DIR / "Art" / "Objects" "Button (pressed).png")
 pressed_button_art = pygame.transform.rotate(pressed_button_art, 90)
-passable_art = load_art("Passable crate.png")
-balcony_art = load_art("Balcony.png")
-door_art = load_art("Door.png")
+passable_art = load_art(ASSETS_DIR / "Art" / "Objects" "Passable crate.png")
+balcony_art = load_art(ASSETS_DIR / "Art" / "Objects" "Balcony.png")
+door_art = load_art(ASSETS_DIR / "Art" / "Objects" "Door.png")
+
+#Loading player models
+bob_art = load_art(ASSETS_DIR / "Art" / "BOB" "BOB.png")
+crouching_art = load_art(ASSETS_DIR / "Art" / "BOB" "BOB_crouch.png")
 
 #SFX
-jump_sfx = pygame.mixer.Sound("Jump.mp3")
-landing_sfx = pygame.mixer.Sound("Landing.mp3")
-raining_sfx = pygame.mixer.Sound("Raining.mp3")
-click_sfx = pygame.mixer.Sound("Button clicked.mp3")
-thunder_sfx = pygame.mixer.Sound("Thunder.mp3")
-balcony_creaking_sfx = pygame.mixer.Sound("Balcony creaking.mp3")
+jump_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Jump.mp3")
+landing_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Landing.mp3")
+raining_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Raining.mp3")
+click_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Button clicked.mp3")
+thunder_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Thunder.mp3")
+balcony_creaking_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Balcony creaking.mp3")
 creaking_channel = pygame.mixer.Channel(1)
-walking_grass = pygame.mixer.Sound("Walking on grass.mp3")
-landing_grass = pygame.mixer.Sound("Landing on grass.mp3")
-walking_wood = pygame.mixer.Sound("Walking on wood.mp3")
+walking_grass = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Walking on grass.mp3")
+landing_grass = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Landing on grass.mp3")
+walking_wood = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Walking on wood.mp3")
 
 #Objects
 darkness = pygame.Surface((800, 600))
