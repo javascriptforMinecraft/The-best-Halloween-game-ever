@@ -70,9 +70,7 @@ Keep the filenames unchanged unless you also update their references in the Pyth
 
 Run the Python script from your terminal:
 
-python main.py
-
-Replace main.py with the actual name of your Python file if it is different.
+python "The best Halloween game ever.py"
 
 Controls
 Key	Action
@@ -82,6 +80,8 @@ W	Jump
 S	Crouch
 
 Close the game window to exit.
+
+Or alternatively, download the .zip file, extract all the files and then run the application file.
 
 Gameplay
 

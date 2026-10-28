@@ -22,7 +22,7 @@ instruction_move_rect = instruction_move.get_rect(topleft = (200, 330))
 instruction_crouch = font.render("S to crouch", False, (255, 255, 255))
 instruction_crouch_rect = instruction_crouch.get_rect(topleft = (200, 360))
 
-#Loading background
+#Loading background function
 def load_background(image_path, screen_size):
     try:
         img = Image.open(image_path).convert("RGB")
@@ -43,6 +43,7 @@ lightning3 = load_background("Lightning3.png", screen_size)
 lightning4 = load_background("Lightning4.png", screen_size)
 lightning5 = load_background("Lightning5.png", screen_size)
 lightning6 = load_background("Lightning6.png", screen_size)
+creepy_house = load_background("Creepy House.png", screen_size)
 
 #Art
 def load_art(art):
@@ -186,6 +187,7 @@ balcony_fall_distance = 0
 balcony_fell = False
 creaking_played = False
 walking_channel = walking_grass.play()
+inHouse = False
 
 #Main loop
 while running:
@@ -251,6 +253,9 @@ while running:
         if balcony_fell == True:
             alpha_fade(darkness, darkness.get_alpha(), 255, 4)
             inHouse = True
+            start_of_fade = pygame.time.get_ticks()
+            if pygame.time.get_ticks() - start_of_fade >= 0:
+                alpha_fade(darkness, darkness.get_alpha(), 150, 8)
 
     #Left-Right movement
     scroll_x = 0
@@ -354,13 +359,14 @@ while running:
         screen.blit(passable_art, rect.topleft)
     for rect in balcony:
         screen.blit(balcony_art, rect.topleft)
-    if isCrouching == True:
-        current_art = crouching_art
-    else:
-        current_art = bob_art
-    art_x = bobs_hitbox.centerx - current_art.get_width() // 2
-    art_y = bobs_hitbox.bottom - current_art.get_height()
-    screen.blit(current_art, (art_x, art_y))
+    if inHouse == False:
+        if isCrouching == True:
+            current_art = crouching_art
+        else:
+            current_art = bob_art
+        art_x = bobs_hitbox.centerx - current_art.get_width() // 2
+        art_y = bobs_hitbox.bottom - current_art.get_height()
+        screen.blit(current_art, (art_x, art_y))
 
     #Button collision
     if bobs_hitbox.colliderect(buttons[0]) == True and clicked == False:
@@ -421,6 +427,16 @@ while running:
         isRaining = True
     if isRaining == True:
         raining()
+
+    if inHouse == True:
+        screen.blit(creepy_house, (0,0))
+        if isCrouching == True:
+            current_art = crouching_art
+        else:
+            current_art = bob_art
+        art_x = bobs_hitbox.centerx - current_art.get_width() // 2
+        art_y = bobs_hitbox.bottom - current_art.get_height()
+        screen.blit(current_art, (art_x, art_y))
 
     #Darkness overlay
     screen.blit(darkness, (0,0))
