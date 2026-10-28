@@ -25,10 +25,10 @@ instruction_crouch_rect = instruction_crouch.get_rect(topleft = (200, 360))
 #Loading background function
 def load_background(image_path, screen_size):
     try:
-        img = Image.open(image_path).convert("RGB")
+        img = Image.open(image_path).convert("RGBA")
         img = img.resize(screen_size, Image.LANCZOS)
         img_bytes = img.tobytes()
-        surface = pygame.image.frombuffer(img_bytes, img.size, "RGB")
+        surface = pygame.image.frombuffer(img_bytes, img.size, "RGBA").copy()
         return surface
     except Exception as e:
         print(f"Error loading background: {e}")
@@ -139,7 +139,7 @@ gameplay = [
 ]
 gameplay.extend(wall0)
 
-house = [
+entrance = [
     pygame.Rect(4000, 0, 100, 100),
     pygame.Rect(4000, 100, 100, 100),
     pygame.Rect(4000, 200, 100, 100),
@@ -188,6 +188,8 @@ balcony_fell = False
 creaking_played = False
 walking_channel = walking_grass.play()
 inHouse = False
+isStart_of_fadeSet = False
+has_bob_moved_after_transition = False
 
 #Main loop
 while running:
@@ -252,14 +254,18 @@ while running:
             balcony_falling = True
         if balcony_fell == True:
             alpha_fade(darkness, darkness.get_alpha(), 255, 4)
-            inHouse = True
-            start_of_fade = pygame.time.get_ticks()
-            if pygame.time.get_ticks() - start_of_fade >= 0:
-                alpha_fade(darkness, darkness.get_alpha(), 150, 8)
+            if isStart_of_fadeSet == False:
+                start_of_fade = pygame.time.get_ticks()
+                isStart_of_fadeSet = True
+            if pygame.time.get_ticks() - start_of_fade >= 3000:
+                inHouse = True
+                alpha_fade(darkness, darkness.get_alpha(), 150, 40)
+                camera_locked = False
+                entrance.clear()
 
     #Left-Right movement
     scroll_x = 0
-    if transitioning == False:
+    if transitioning == False or inHouse == True:
         if key[pygame.K_a] == True:
             scroll_x = 5
         elif key[pygame.K_d] == True:
@@ -282,7 +288,7 @@ while running:
         if scroll_x != 0:
             if camera_locked == True:
                 future_hitbox = bobs_hitbox.move(-scroll_x, 0)
-                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + house):
+                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance):
                     bobs_hitbox.x -= scroll_x
             else:
                 can_scroll = True
@@ -291,9 +297,9 @@ while running:
                     if bobs_hitbox.colliderect(future_rect) == True:
                         can_scroll = False
                         break
-                if can_scroll == True:
+                if can_scroll == True and inHouse == False:
 
-                    for rect in gameplay + buttons + passable_gameplay + house + balcony + [raining_area] + [door] + [camera_change] + [transition_rect]:
+                    for rect in gameplay + buttons + passable_gameplay + entrance + balcony + [raining_area] + [door] + [camera_change] + [transition_rect]:
                         rect.move_ip(scroll_x, 0)
                     instruction_jump_rect.x += scroll_x
                     instruction_move_rect.x += scroll_x
@@ -351,7 +357,7 @@ while running:
     screen.blit(instruction_move, instruction_move_rect)
     screen.blit(instruction_crouch, instruction_crouch_rect)
     screen.blit(door_art, door.topleft)
-    for rect in gameplay + house:
+    for rect in gameplay + entrance:
         screen.blit(crate, rect.topleft)
     for rect in buttons:
         screen.blit(not_pressed_button_art, rect.topleft)
@@ -437,6 +443,9 @@ while running:
         art_x = bobs_hitbox.centerx - current_art.get_width() // 2
         art_y = bobs_hitbox.bottom - current_art.get_height()
         screen.blit(current_art, (art_x, art_y))
+        if has_bob_moved_after_transition == False:
+            bobs_hitbox.move_ip(-600, 0)
+            has_bob_moved_after_transition = True
 
     #Darkness overlay
     screen.blit(darkness, (0,0))
