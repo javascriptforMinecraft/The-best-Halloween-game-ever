@@ -187,6 +187,31 @@ floor = [
     pygame.Rect(2100, 500, 100, 100),
     pygame.Rect(2300, 500, 100, 100),
 ]
+ceiling = [
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(100, 0, 100, 100),
+    pygame.Rect(200, 0, 100, 100),
+    pygame.Rect(300, 0, 100, 100),
+    pygame.Rect(400, 0, 100, 100),
+    pygame.Rect(500, 0, 100, 100),
+    pygame.Rect(600, 0, 100, 100),
+    pygame.Rect(700, 0, 100, 100),
+    pygame.Rect(800, 0, 100, 100),
+    pygame.Rect(900, 0, 100, 100),
+    pygame.Rect(1000, 0, 100, 100),
+    pygame.Rect(1100, 0, 100, 100),
+    pygame.Rect(1200, 0, 100, 100),
+    pygame.Rect(1300, 0, 100, 100),
+    pygame.Rect(1400, 0, 100, 100),
+    pygame.Rect(1500, 0, 100, 100),
+    pygame.Rect(1600, 0, 100, 100),
+    pygame.Rect(1700, 0, 100, 100),
+    pygame.Rect(1800, 0, 100, 100),
+    pygame.Rect(1900, 0, 100, 100),
+    pygame.Rect(2000, 0, 100, 100),
+    pygame.Rect(2100, 0, 100, 100),
+    pygame.Rect(2300, 0, 100, 100),
+]
 fireplace = pygame.Rect(3600, 400, 100, 100)
 fireplace_chimney = [
     pygame.Rect(3640, 300, 20, 100),
@@ -553,7 +578,7 @@ while running:
             screen.blit(other_chair_art, rect.topleft)
         for rect in fireplace_chimney:
             screen.blit(fireplace_chimney_art, rect.topleft)
-        for rect in floor:
+        for rect in floor + ceiling:
             screen.blit(floorboard_art, rect.topleft)
         if isCrouching == True:
             current_art = crouching_art
