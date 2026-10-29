@@ -38,15 +38,15 @@ def load_background(image_path, screen_size):
         sys.exit(1)
 
 #Loading backgrounds
-outside = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Outside.png", screen_size)
-stormy_outside = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Stormy.png", screen_size)
-lightning1 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning1.png", screen_size)
-lightning2 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning2.png", screen_size)
-lightning3 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning3.png", screen_size)
-lightning4 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning4.png", screen_size)
-lightning5 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning5.png", screen_size)
-lightning6 = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Lightning6.png", screen_size)
-creepy_house = load_background(ASSETS_DIR / "Art" / "Backgrounds" "Creepy House.png", screen_size)
+outside = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Outside.png", screen_size)
+stormy_outside = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Stormy.png", screen_size)
+lightning1 = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Lightning1.png", screen_size)
+lightning2 = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Lightning2.png", screen_size)
+lightning3 = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Lightning3.png", screen_size)
+lightning4 = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Lightning4.png", screen_size)
+lightning5 = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Lightning5.png", screen_size)
+lightning6 = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Lightning6.png", screen_size)
+creepy_house = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Creepy House.png", screen_size)
 
 #Art
 def load_art(art):
@@ -58,30 +58,37 @@ def load_art(art):
         sys.exit()
 
 #Loading art
-crate = load_art(ASSETS_DIR / "Art" / "Objects" "Crate.png")
-not_pressed_button_art = load_art(ASSETS_DIR / "Art" / "Objects" "Button (not pressed).png")
+crate = load_art(ASSETS_DIR / "Art" / "Objects" / "Crate.png")
+not_pressed_button_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Button (not pressed).png")
 not_pressed_button_art = pygame.transform.rotate(not_pressed_button_art, 90)
-pressed_button_art = load_art(ASSETS_DIR / "Art" / "Objects" "Button (pressed).png")
+pressed_button_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Button (pressed).png")
 pressed_button_art = pygame.transform.rotate(pressed_button_art, 90)
-passable_art = load_art(ASSETS_DIR / "Art" / "Objects" "Passable crate.png")
-balcony_art = load_art(ASSETS_DIR / "Art" / "Objects" "Balcony.png")
-door_art = load_art(ASSETS_DIR / "Art" / "Objects" "Door.png")
+passable_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Passable crate.png")
+balcony_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Balcony.png")
+door_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Door.png")
+fireplace_closed_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Fireplace closed.png")
+fireplace_open_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Fireplace open.png")
+fireplace_with_coal_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Fireplace with coal.png")
+fireplace_lit_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Fireplace lit.png")
+fireplace_chimney_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Fireplace chimney.png")
+chair_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Chair.png")
+other_chair_art= pygame.transform.flip(chair_art, True, False)
 
 #Loading player models
-bob_art = load_art(ASSETS_DIR / "Art" / "BOB" "BOB.png")
-crouching_art = load_art(ASSETS_DIR / "Art" / "BOB" "BOB_crouch.png")
+bob_art = load_art(ASSETS_DIR / "Art" / "BOB" / "BOB.png")
+crouching_art = load_art(ASSETS_DIR / "Art" / "BOB" / "BOB_crouch.png")
 
 #SFX
-jump_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Jump.mp3")
-landing_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Landing.mp3")
-raining_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Raining.mp3")
-click_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Button clicked.mp3")
-thunder_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Thunder.mp3")
-balcony_creaking_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Balcony creaking.mp3")
+jump_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Jump.mp3")
+landing_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Landing.mp3")
+raining_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Raining.mp3")
+click_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Button clicked.mp3")
+thunder_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Thunder.mp3")
+balcony_creaking_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Balcony creaking.mp3")
 creaking_channel = pygame.mixer.Channel(1)
-walking_grass = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Walking on grass.mp3")
-landing_grass = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Landing on grass.mp3")
-walking_wood = pygame.mixer.Sound(ASSETS_DIR / "SFX" "Walking on wood.mp3")
+walking_grass = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on grass.mp3")
+landing_grass = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Landing on grass.mp3")
+walking_wood = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on wood.mp3")
 
 #Objects
 darkness = pygame.Surface((800, 600))
@@ -154,6 +161,14 @@ balcony = [
     pygame.Rect(3800, 200, 100, 100),
     pygame.Rect(3900, 200, 100, 100)
 ]
+fireplace = pygame.Rect(3600, 400, 100, 100)
+fireplace_chimney = [
+    pygame.Rect(3640, 300, 20, 100),
+    pygame.Rect(3640, 200, 20, 100),
+    pygame.Rect(3640, 100, 20, 100)
+]
+chair = pygame.Rect(3450, 400, 100, 200)
+other_chair = pygame.Rect(3750, 400, 100, 200)
 
 camera_change = pygame.Rect(3670, 0, 10, 600)
 transition_rect = pygame.Rect(4200, 0, 10, 600)
@@ -195,6 +210,9 @@ walking_channel = walking_grass.play()
 inHouse = False
 isStart_of_fadeSet = False
 has_bob_moved_after_transition = False
+inventory = []
+fireplace_state = "Closed"
+current_fireplace_art = fireplace_closed_art
 
 #Main loop
 while running:
@@ -202,6 +220,23 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        
+        #Interactions
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_f:
+                if bobs_hitbox.colliderect(fireplace) == True:
+                    if "Lighter" in inventory and fireplace_state == "Contains Coal":
+                        current_fireplace_art = fireplace_lit_art
+                        fireplace_state = "Lit"
+                    elif "Coal" in inventory and fireplace_state == "Open":
+                        current_fireplace_art = fireplace_with_coal_art
+                        fireplace_state = "Contains Coal"
+                    elif fireplace_state == "Open":
+                        current_fireplace_art = fireplace_closed_art
+                        fireplace_state = "Closed"
+                    else:
+                        current_fireplace_art = fireplace_open_art
+                        fireplace_state = "Open"
 
     #Alpha fade function
     def alpha_fade(surface, current_alpha, target_alpha, fade_speed):
@@ -264,20 +299,23 @@ while running:
                 isStart_of_fadeSet = True
             if pygame.time.get_ticks() - start_of_fade >= 3000:
                 inHouse = True
-                alpha_fade(darkness, darkness.get_alpha(), 150, 40)
+                fireplace.topleft = (400, 400)
+                alpha_fade(darkness, darkness.get_alpha(), 0, 40)
+                transitioning = False
                 camera_locked = False
                 entrance.clear()
+                balcony.clear()
 
     #Left-Right movement
     scroll_x = 0
-    if transitioning == False or inHouse == True:
+    if transitioning == False:
         if key[pygame.K_a] == True:
             scroll_x = 5
         elif key[pygame.K_d] == True:
             scroll_x = -5
         isMoving = (key[pygame.K_a] or key[pygame.K_d]) and not transitioning
         if isMoving:
-            if bobs_hitbox.bottom >= screen_size[1] - 100:
+            if bobs_hitbox.bottom >= screen_size[1] - 100 and inHouse == False:
                 sound_to_play = walking_grass
             else:
                 sound_to_play = walking_wood
@@ -302,7 +340,7 @@ while running:
                     if bobs_hitbox.colliderect(future_rect) == True:
                         can_scroll = False
                         break
-                if can_scroll == True and inHouse == False:
+                if can_scroll == True:
 
                     for rect in gameplay + buttons + passable_gameplay + entrance + balcony + [raining_area] + [door] + [camera_change] + [transition_rect]:
                         rect.move_ip(scroll_x, 0)
@@ -392,7 +430,7 @@ while running:
     #Raining function
     def raining():
         global rain, outside, lightning_duration, lightning_active, lightning_end_time, remainder_time, darkness, gameplay, passable_gameplay
-        if transitioning == False:
+        if transitioning == False and inHouse == False:
             darkness.set_alpha(150)
         for drop in rain:
             drop[1] += drop[2]
@@ -412,7 +450,7 @@ while running:
                 2
             )
         #Lightning logic
-        if transitioning == False:
+        if transitioning == False and inHouse == False:
             lightning_timer = pygame.time.get_ticks()
             if lightning_timer - remainder_time >= 5000:
                 lightning_strike = random.randint(0, 5)
@@ -441,6 +479,11 @@ while running:
 
     if inHouse == True:
         screen.blit(creepy_house, (0,0))
+        screen.blit(current_fireplace_art, fireplace.topleft)
+        screen.blit(chair_art, chair.topleft)
+        screen.blit(other_chair_art, other_chair.topleft)
+        for rect in fireplace_chimney:
+            screen.blit(fireplace_chimney_art, rect.topleft)
         if isCrouching == True:
             current_art = crouching_art
         else:
