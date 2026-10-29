@@ -24,6 +24,8 @@ instruction_move = font.render("A/D to move left/right", False, (255, 255, 255))
 instruction_move_rect = instruction_move.get_rect(topleft = (200, 330))
 instruction_crouch = font.render("S to crouch", False, (255, 255, 255))
 instruction_crouch_rect = instruction_crouch.get_rect(topleft = (200, 360))
+instruction_interact = font.render("F to interact with things", False, (255, 255, 255))
+instruction_interact_rect = instruction_interact.get_rect(topleft = (200, 420))
 
 #Loading background function
 def load_background(image_path, screen_size):
@@ -171,7 +173,22 @@ floor = [
     pygame.Rect(400, 500, 100, 100),
     pygame.Rect(500, 500, 100, 100),
     pygame.Rect(600, 500, 100, 100),
-    pygame.Rect(700, 500, 100, 100)
+    pygame.Rect(700, 500, 100, 100),
+    pygame.Rect(800, 500, 100, 100),
+    pygame.Rect(900, 500, 100, 100),
+    pygame.Rect(1000, 500, 100, 100),
+    pygame.Rect(1100, 500, 100, 100),
+    pygame.Rect(1200, 500, 100, 100),
+    pygame.Rect(1300, 500, 100, 100),
+    pygame.Rect(1400, 500, 100, 100),
+    pygame.Rect(1500, 500, 100, 100),
+    pygame.Rect(1600, 500, 100, 100),
+    pygame.Rect(1700, 500, 100, 100),
+    pygame.Rect(1800, 500, 100, 100),
+    pygame.Rect(900, 500, 100, 100),
+    pygame.Rect(2000, 500, 100, 100),
+    pygame.Rect(2100, 500, 100, 100),
+    pygame.Rect(2300, 500, 100, 100),
 ]
 fireplace = pygame.Rect(3600, 400, 100, 100)
 fireplace_chimney = [
@@ -190,10 +207,12 @@ other_chair = [
 ]
 dining_table = pygame.Rect(4375, 400, 150, 100)
 house = [fireplace, dining_table]
-house.extend(fireplace_chimney, chair, other_chair)
+house.extend(fireplace_chimney + chair + other_chair)
 
 camera_change = pygame.Rect(3670, 0, 10, 600)
 transition_rect = pygame.Rect(4200, 0, 10, 600)
+move_left_in_house = pygame.Rect(4500, 0, 10, 600)
+move_right_in_house = pygame.Rect(5300, 0, 10, 600)
 
 #BOB
 bob = pygame.Rect(300, 400, 100, 100)
@@ -206,6 +225,8 @@ on_ground = False
 jump_speed = 15
 gravity = 0.8
 velocity_y = 0
+house.append(bob)
+house.append(bobs_hitbox)
 
 #Pre-main loop variables
 running = True
@@ -325,13 +346,14 @@ while running:
                 chair[0].topleft = (250, 300)
                 chair[1].topleft = (1050, 300)
                 other_chair[0].topleft = (550, 300)
-                other_chair[1].topleft = (1300, 300)
+                other_chair[1].topleft = (1400, 300)
                 dining_table.topleft = (1175, 400)
+                move_left_in_house.topleft = (-100, 0)
+                move_right_in_house.topleft = (890, 0)
                 for k in range(len(fireplace_chimney)):
                     fireplace_chimney[k].topleft = (440, 312 - 100*k)
                 alpha_fade(darkness, darkness.get_alpha(), 0, 40)
                 transitioning = False
-                camera_locked = False
                 entrance.clear()
                 balcony.clear()
 
@@ -343,7 +365,7 @@ while running:
         elif key[pygame.K_d] == True:
             scroll_x = -5
         isMoving = (key[pygame.K_a] or key[pygame.K_d]) and not transitioning
-        if isMoving:
+        if isMoving == True:
             if bobs_hitbox.bottom >= screen_size[1] - 100 and inHouse == False:
                 sound_to_play = walking_grass
             else:
@@ -362,6 +384,12 @@ while running:
                 future_hitbox = bobs_hitbox.move(-scroll_x, 0)
                 if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + [dining_table]):
                     bobs_hitbox.x -= scroll_x
+                if bobs_hitbox.colliderect(move_left_in_house) == True:
+                    for rect in house:
+                        rect.move_ip(800, 0)
+                elif bobs_hitbox.colliderect(move_right_in_house) == True:
+                    for rect in house:
+                        rect.move_ip(-800, 0)
             else:
                 can_scroll = True
                 for rect in gameplay:
@@ -389,7 +417,7 @@ while running:
     velocity_y += gravity
     bobs_hitbox.y += round(velocity_y)
     on_ground = False
-    for rect in gameplay + balcony:
+    for rect in gameplay + balcony + [dining_table]:
         if bobs_hitbox.colliderect(rect) == False:
             continue
         if velocity_y >= 0 and previous.bottom <= rect.top:
@@ -428,6 +456,7 @@ while running:
     screen.blit(instruction_jump, instruction_jump_rect)
     screen.blit(instruction_move, instruction_move_rect)
     screen.blit(instruction_crouch, instruction_crouch_rect)
+    screen.blit(instruction_interact, instruction_interact_rect)
     screen.blit(door_art, door.topleft)
     for rect in gameplay + entrance:
         screen.blit(crate, rect.topleft)
@@ -531,7 +560,7 @@ while running:
             has_bob_moved_after_transition = True
 
     #Darkness overlay
-    screen.blit(darkness, (0,0))
+    #screen.blit(darkness, (0,0))
 
     #Refresh rate
     pygame.display.flip()
