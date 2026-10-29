@@ -25,7 +25,7 @@ instruction_move_rect = instruction_move.get_rect(topleft = (200, 330))
 instruction_crouch = font.render("S to crouch", False, (255, 255, 255))
 instruction_crouch_rect = instruction_crouch.get_rect(topleft = (200, 360))
 instruction_interact = font.render("F to interact with things", False, (255, 255, 255))
-instruction_interact_rect = instruction_interact.get_rect(topleft = (200, 420))
+instruction_interact_rect = instruction_interact.get_rect(topleft = (200, 390))
 
 #Loading background function
 def load_background(image_path, screen_size):
@@ -99,7 +99,6 @@ darkness = pygame.Surface((800, 600))
 darkness.fill((0, 0, 0))
 darkness.set_alpha(100)
 
-raining_area = pygame.Rect(3000, 0, 10, 600)
 
 wall0 = [
     pygame.Rect(2000, 0, 100, 100),
@@ -108,9 +107,7 @@ wall0 = [
     pygame.Rect(2000, 300, 100, 100),
     pygame.Rect(2000, 400, 100, 100)
 ]
-buttons = [
-    pygame.Rect(1300, 413, 40, 74)
-]
+button = pygame.Rect(1300, 413, 40, 74)
 passable_gameplay = [
     pygame.Rect(2200, 400, 100, 20),
     pygame.Rect(2200, 300, 100, 20)
@@ -185,7 +182,7 @@ floor = [
     pygame.Rect(1600, 500, 100, 100),
     pygame.Rect(1700, 500, 100, 100),
     pygame.Rect(1800, 500, 100, 100),
-    pygame.Rect(900, 500, 100, 100),
+    pygame.Rect(1900, 500, 100, 100),
     pygame.Rect(2000, 500, 100, 100),
     pygame.Rect(2100, 500, 100, 100),
     pygame.Rect(2300, 500, 100, 100),
@@ -207,12 +204,18 @@ other_chair = [
 ]
 dining_table = pygame.Rect(4375, 400, 150, 100)
 house = [fireplace, dining_table]
-house.extend(fireplace_chimney + chair + other_chair)
+house.extend(fireplace_chimney + chair + other_chair + floor)
 
+raining_area = pygame.Rect(3000, 0, 10, 600)
 camera_change = pygame.Rect(3670, 0, 10, 600)
 transition_rect = pygame.Rect(4200, 0, 10, 600)
+house_wall_left = pygame.Rect(4500, -600, 10, 1200)
+house_wall_right = pygame.Rect(5000, -600, 10, 1200)
 move_left_in_house = pygame.Rect(4500, 0, 10, 600)
 move_right_in_house = pygame.Rect(5300, 0, 10, 600)
+
+house.append(house_wall_left)
+house.append(house_wall_right)
 
 #BOB
 bob = pygame.Rect(300, 400, 100, 100)
@@ -267,6 +270,18 @@ while running:
         #Interactions
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_f:
+
+                #Button interaction
+                if bobs_hitbox.colliderect(button) == True and clicked == False:
+                    for rect in wall0:
+                        if rect in gameplay:
+                            gameplay.remove(rect)
+                    wall0.clear()
+                    not_pressed_button_art = pressed_button_art
+                    click_sfx.play()
+                    clicked = True
+
+                #Fireplace interaction
                 if bobs_hitbox.colliderect(fireplace) == True:
                     if "Lighter" in inventory and fireplace_state == "Contains Coal":
                         current_fireplace_art = fireplace_lit_art
@@ -350,6 +365,8 @@ while running:
                 dining_table.topleft = (1175, 400)
                 move_left_in_house.topleft = (-100, 0)
                 move_right_in_house.topleft = (890, 0)
+                house_wall_left.topleft = (-10, -600)
+                house_wall_right.topleft = (2410, -600)
                 for k in range(len(fireplace_chimney)):
                     fireplace_chimney[k].topleft = (440, 312 - 100*k)
                 alpha_fade(darkness, darkness.get_alpha(), 0, 40)
@@ -382,7 +399,7 @@ while running:
         if scroll_x != 0:
             if camera_locked == True:
                 future_hitbox = bobs_hitbox.move(-scroll_x, 0)
-                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + [dining_table]):
+                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + [dining_table] + [house_wall_right] + [house_wall_left]):
                     bobs_hitbox.x -= scroll_x
                 if bobs_hitbox.colliderect(move_left_in_house) == True:
                     for rect in house:
@@ -399,11 +416,12 @@ while running:
                         break
                 if can_scroll == True:
 
-                    for rect in gameplay + buttons + passable_gameplay + entrance + balcony + [raining_area] + [door] + [camera_change] + [transition_rect]:
+                    for rect in gameplay + [button] + passable_gameplay + entrance + balcony + [raining_area] + [door] + [camera_change] + [transition_rect]:
                         rect.move_ip(scroll_x, 0)
                     instruction_jump_rect.x += scroll_x
                     instruction_move_rect.x += scroll_x
                     instruction_crouch_rect.x += scroll_x
+                    instruction_interact_rect.x += scroll_x
 
     #Jump mechanic
     was_on_ground = on_ground
@@ -417,7 +435,7 @@ while running:
     velocity_y += gravity
     bobs_hitbox.y += round(velocity_y)
     on_ground = False
-    for rect in gameplay + balcony + [dining_table]:
+    for rect in gameplay + balcony + floor + [dining_table]:
         if bobs_hitbox.colliderect(rect) == False:
             continue
         if velocity_y >= 0 and previous.bottom <= rect.top:
@@ -432,7 +450,7 @@ while running:
             bobs_hitbox.bottom = rect.top
             velocity_y = 0
             on_ground = True
-    if bobs_hitbox.bottom >= screen_size[1] - 100:
+    if bobs_hitbox.bottom >= screen_size[1] - 100 and inHouse == False:
         bobs_hitbox.bottom = screen_size[1] - 100
         velocity_y = 0
         on_ground = True
@@ -458,10 +476,9 @@ while running:
     screen.blit(instruction_crouch, instruction_crouch_rect)
     screen.blit(instruction_interact, instruction_interact_rect)
     screen.blit(door_art, door.topleft)
+    screen.blit(not_pressed_button_art, button.topleft)
     for rect in gameplay + entrance:
         screen.blit(crate, rect.topleft)
-    for rect in buttons:
-        screen.blit(not_pressed_button_art, rect.topleft)
     for rect in passable_gameplay:
         screen.blit(passable_art, rect.topleft)
     for rect in balcony:
@@ -474,16 +491,6 @@ while running:
         art_x = bobs_hitbox.centerx - current_art.get_width() // 2
         art_y = bobs_hitbox.bottom - current_art.get_height()
         screen.blit(current_art, (art_x, art_y))
-
-    #Button collision
-    if bobs_hitbox.colliderect(buttons[0]) == True and clicked == False:
-        for rect in wall0:
-            if rect in gameplay:
-                gameplay.remove(rect)
-        wall0.clear()
-        not_pressed_button_art = pressed_button_art
-        click_sfx.play()
-        clicked = True
 
     #Raining function
     def raining():
