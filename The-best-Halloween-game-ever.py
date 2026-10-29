@@ -74,6 +74,7 @@ fireplace_chimney_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Fireplace chi
 chair_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Chair.png")
 other_chair_art = pygame.transform.flip(chair_art, True, False)
 floorboard_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Floorboard.png")
+dining_table_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Dining table.png")
 
 #Loading player models
 bob_art = load_art(ASSETS_DIR / "Art" / "BOB" / "BOB.png")
@@ -179,8 +180,17 @@ fireplace_chimney = [
     pygame.Rect(3640, 100, 20, 100),
     pygame.Rect(3640, 0, 20, 100)
 ]
-chair = pygame.Rect(3450, 300, 100, 200)
-other_chair = pygame.Rect(3750, 300, 100, 200)
+chair = [
+    pygame.Rect(3450, 300, 100, 200),
+    pygame.Rect(4300, 300, 100, 200)
+]
+other_chair = [
+    pygame.Rect(3750, 300, 100, 200),
+    pygame.Rect(4600, 300, 100, 200)
+]
+dining_table = pygame.Rect(4375, 400, 150, 100)
+house = [fireplace, dining_table]
+house.extend(fireplace_chimney, chair, other_chair)
 
 camera_change = pygame.Rect(3670, 0, 10, 600)
 transition_rect = pygame.Rect(4200, 0, 10, 600)
@@ -312,8 +322,11 @@ while running:
             if pygame.time.get_ticks() - start_of_fade >= 3000:
                 inHouse = True
                 fireplace.topleft = (400, 400)
-                chair.topleft = (250, 300)
-                other_chair.topleft = (550, 300)
+                chair[0].topleft = (250, 300)
+                chair[1].topleft = (1050, 300)
+                other_chair[0].topleft = (550, 300)
+                other_chair[1].topleft = (1300, 300)
+                dining_table.topleft = (1175, 400)
                 for k in range(len(fireplace_chimney)):
                     fireplace_chimney[k].topleft = (440, 312 - 100*k)
                 alpha_fade(darkness, darkness.get_alpha(), 0, 40)
@@ -347,7 +360,7 @@ while running:
         if scroll_x != 0:
             if camera_locked == True:
                 future_hitbox = bobs_hitbox.move(-scroll_x, 0)
-                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance):
+                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + [dining_table]):
                     bobs_hitbox.x -= scroll_x
             else:
                 can_scroll = True
@@ -497,8 +510,11 @@ while running:
     if inHouse == True:
         screen.blit(creepy_house, (0,0))
         screen.blit(current_fireplace_art, fireplace.topleft)
-        screen.blit(chair_art, chair.topleft)
-        screen.blit(other_chair_art, other_chair.topleft)
+        screen.blit(dining_table_art, dining_table.topleft)
+        for rect in chair:
+            screen.blit(chair_art, rect.topleft)
+        for rect in other_chair:
+            screen.blit(other_chair_art, rect.topleft)
         for rect in fireplace_chimney:
             screen.blit(fireplace_chimney_art, rect.topleft)
         for rect in floor:
