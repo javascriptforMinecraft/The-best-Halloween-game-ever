@@ -72,7 +72,8 @@ fireplace_with_coal_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Fireplace w
 fireplace_lit_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Fireplace lit.png")
 fireplace_chimney_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Fireplace chimney.png")
 chair_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Chair.png")
-other_chair_art= pygame.transform.flip(chair_art, True, False)
+other_chair_art = pygame.transform.flip(chair_art, True, False)
+floorboard_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Floorboard.png")
 
 #Loading player models
 bob_art = load_art(ASSETS_DIR / "Art" / "BOB" / "BOB.png")
@@ -161,14 +162,25 @@ balcony = [
     pygame.Rect(3800, 200, 100, 100),
     pygame.Rect(3900, 200, 100, 100)
 ]
+floor = [
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(100, 500, 100, 100),
+    pygame.Rect(200, 500, 100, 100),
+    pygame.Rect(300, 500, 100, 100),
+    pygame.Rect(400, 500, 100, 100),
+    pygame.Rect(500, 500, 100, 100),
+    pygame.Rect(600, 500, 100, 100),
+    pygame.Rect(700, 500, 100, 100)
+]
 fireplace = pygame.Rect(3600, 400, 100, 100)
 fireplace_chimney = [
     pygame.Rect(3640, 300, 20, 100),
     pygame.Rect(3640, 200, 20, 100),
-    pygame.Rect(3640, 100, 20, 100)
+    pygame.Rect(3640, 100, 20, 100),
+    pygame.Rect(3640, 0, 20, 100)
 ]
-chair = pygame.Rect(3450, 400, 100, 200)
-other_chair = pygame.Rect(3750, 400, 100, 200)
+chair = pygame.Rect(3450, 300, 100, 200)
+other_chair = pygame.Rect(3750, 300, 100, 200)
 
 camera_change = pygame.Rect(3670, 0, 10, 600)
 transition_rect = pygame.Rect(4200, 0, 10, 600)
@@ -300,6 +312,10 @@ while running:
             if pygame.time.get_ticks() - start_of_fade >= 3000:
                 inHouse = True
                 fireplace.topleft = (400, 400)
+                chair.topleft = (250, 300)
+                other_chair.topleft = (550, 300)
+                for k in range(len(fireplace_chimney)):
+                    fireplace_chimney[k].topleft = (440, 312 - 100*k)
                 alpha_fade(darkness, darkness.get_alpha(), 0, 40)
                 transitioning = False
                 camera_locked = False
@@ -477,6 +493,7 @@ while running:
     if isRaining == True:
         raining()
 
+    #Drawing house art
     if inHouse == True:
         screen.blit(creepy_house, (0,0))
         screen.blit(current_fireplace_art, fireplace.topleft)
@@ -484,6 +501,8 @@ while running:
         screen.blit(other_chair_art, other_chair.topleft)
         for rect in fireplace_chimney:
             screen.blit(fireplace_chimney_art, rect.topleft)
+        for rect in floor:
+            screen.blit(floorboard_art, rect.topleft)
         if isCrouching == True:
             current_art = crouching_art
         else:
