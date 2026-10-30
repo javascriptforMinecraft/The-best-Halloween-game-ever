@@ -84,6 +84,7 @@ cupboard_open_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Cupboard open.png
 elevator_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Elevator.png")
 breaker_box_off = load_art(ASSETS_DIR / "Art" / "Objects" / "Breaker box off.png")
 breaker_box_on = load_art(ASSETS_DIR / "Art" / "Objects" / "Breaker box on.png")
+cobblestone_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Cobblestone.png")
 
 #Loading player models
 bob_art = load_art(ASSETS_DIR / "Art" / "BOB" / "BOB.png")
@@ -93,6 +94,7 @@ crouching_art = load_art(ASSETS_DIR / "Art" / "BOB" / "BOB_crouch.png")
 jump_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Jump.mp3")
 landing_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Landing.mp3")
 raining_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Raining.mp3")
+raining_channel = pygame.mixer.Channel(2)
 click_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Button clicked.mp3")
 thunder_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Thunder.mp3")
 balcony_creaking_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Balcony creaking.mp3")
@@ -100,6 +102,7 @@ creaking_channel = pygame.mixer.Channel(1)
 walking_grass = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on grass.mp3")
 landing_grass = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Landing on grass.mp3")
 walking_wood = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on wood.mp3")
+walking_stone = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on stone.mp3")
 
 #Objects
 darkness = pygame.Surface((800, 600))
@@ -219,6 +222,32 @@ ceiling = [
     pygame.Rect(2100, 0, 100, 100),
     pygame.Rect(2300, 0, 100, 100),
 ]
+cobblestone_floor = [
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100),
+    pygame.Rect(0, 0, 100, 100)
+]
 fireplace = pygame.Rect(3600, 400, 100, 100)
 fireplace_chimney = [
     pygame.Rect(3640, 300, 20, 100),
@@ -246,13 +275,15 @@ house.extend(fireplace_chimney + chair + other_chair + floor + cupboards)
 raining_area = pygame.Rect(3000, 0, 10, 600)
 camera_change = pygame.Rect(3670, 0, 10, 600)
 transition_rect = pygame.Rect(4200, 0, 10, 600)
-house_wall_left = pygame.Rect(4500, -600, 10, 1200)
-house_wall_right = pygame.Rect(5000, -600, 10, 1200)
+house_wall_left = pygame.Rect(4500, -600, 10, 1800)
+house_wall_right = pygame.Rect(5000, -600, 10, 1800)
 move_left_in_house = pygame.Rect(4500, 0, 10, 600)
 move_right_in_house = pygame.Rect(5300, 0, 10, 600)
+basement_switch = pygame.Rect(5200, 600, 100, 10)
 
 house.append(house_wall_left)
 house.append(house_wall_right)
+house.append(basement_switch)
 
 #BOB
 bob = pygame.Rect(300, 400, 100, 100)
@@ -353,6 +384,8 @@ while running:
 
     #Draw background(s)
     screen.blit(outside, (0, 0))
+    if isRaining == True:
+        raining()
     if current_area == "House":
         screen.blit(creepy_house, (0,0))
     if current_area == "Basement":
@@ -410,12 +443,25 @@ while running:
                 move_left_in_house.topleft = (-100, 0)
                 move_right_in_house.topleft = (890, 0)
                 house_wall_left.topleft = (-10, -600)
+                house_wall_right.topleft = (2410, -600)
+                basement_switch.topleft = (2200, 600)
                 for k in range(len(fireplace_chimney)):
                     fireplace_chimney[k].topleft = (440, 312 - 100*k)
+                for k in range(len(cobblestone_floor)):
+                    cobblestone_floor[k].topleft = (100*k, -500)
                 alpha_fade(darkness, darkness.get_alpha(), 0, 40)
                 transitioning = False
                 entrance.clear()
                 balcony.clear()
+    if bobs_hitbox.colliderect(basement_switch) == True and current_area != "Basement":
+        for rect in house:
+            if rect != bob and rect != bobs_hitbox and rect != basement_switch:
+                rect.move_ip(0, 600)
+            else:
+                rect.move_ip(0, -600)
+        for rect in cobblestone_floor:
+            rect.move_ip(0, 600)
+        current_area = "Basement"
 
     #Left-Right movement
     scroll_x = 0
@@ -426,10 +472,13 @@ while running:
             scroll_x = -5
         isMoving = (key[pygame.K_a] or key[pygame.K_d]) and not transitioning
         if isMoving == True:
-            if bobs_hitbox.bottom >= screen_size[1] - 100 and current_area != "House":
-                sound_to_play = walking_grass
-            else:
-                sound_to_play = walking_wood
+            if bobs_hitbox.bottom >= screen_size[1] - 100:
+                if current_area == "Outside":
+                    sound_to_play = walking_grass
+                elif current_area == "House":
+                    sound_to_play = walking_wood
+                else:
+                    sound_to_play = walking_stone
             if walking_channel.get_sound() != sound_to_play:
                 walking_channel.stop()
                 walking_channel = sound_to_play.play(-1)
@@ -518,7 +567,6 @@ while running:
     screen.blit(instruction_move, instruction_move_rect)
     screen.blit(instruction_crouch, instruction_crouch_rect)
     screen.blit(instruction_interact, instruction_interact_rect)
-    screen.blit(door_art, door.topleft)
     screen.blit(not_pressed_button_art, button.topleft)
     for rect in gameplay + entrance:
         screen.blit(crate, rect.topleft)
@@ -526,19 +574,13 @@ while running:
         screen.blit(passable_art, rect.topleft)
     for rect in balcony:
         screen.blit(balcony_art, rect.topleft)
-    if current_area != "House":
-        if isCrouching == True:
-            current_art = crouching_art
-        else:
-            current_art = bob_art
-        art_x = bobs_hitbox.centerx - current_art.get_width() // 2
-        art_y = bobs_hitbox.bottom - current_art.get_height()
-        screen.blit(current_art, (art_x, art_y))
+    if current_area == "Outside":
+        screen.blit(door_art, door.topleft)
 
     #Raining function
     def raining():
         global rain, outside, lightning_duration, lightning_active, lightning_end_time, remainder_time, darkness, gameplay, passable_gameplay
-        if transitioning == False and current_area != "House":
+        if transitioning == False:
             darkness.set_alpha(150)
         for drop in rain:
             drop[1] += drop[2]
@@ -579,14 +621,15 @@ while running:
 
     #Activate raining
     if bob.colliderect(raining_area) == True and isRaining == False:
-        raining_sfx.play(-1)
+        raining_channel = raining_sfx.play(-1)
         outside = stormy_outside
         isRaining = True
-    if isRaining == True:
-        raining()
 
-    #Drawing house art
+    #Drawing house art and doing other housey things
     if current_area == "House":
+        if has_bob_moved_after_transition == False:
+            bobs_hitbox.move_ip(-600, 0)
+            has_bob_moved_after_transition = True
         screen.blit(current_fireplace_art, fireplace.topleft)
         screen.blit(dining_table_art, dining_table.topleft)
         screen.blit(stove_art, stove.topleft)
@@ -600,16 +643,17 @@ while running:
             screen.blit(cupboard_closed_art, rect.topleft)
         for rect in floor + ceiling:
             screen.blit(floorboard_art, rect.topleft)
-        if isCrouching == True:
-            current_art = crouching_art
-        else:
-            current_art = bob_art
-        art_x = bobs_hitbox.centerx - current_art.get_width() // 2
-        art_y = bobs_hitbox.bottom - current_art.get_height()
-        screen.blit(current_art, (art_x, art_y))
-        if has_bob_moved_after_transition == False:
-            bobs_hitbox.move_ip(-600, 0)
-            has_bob_moved_after_transition = True
+        for rect in cobblestone_floor:
+            screen.blit(cobblestone_art, rect.topleft)
+
+    #Drawing BOB
+    if isCrouching == True:
+        current_art = crouching_art
+    else:
+        current_art = bob_art
+    art_x = bobs_hitbox.centerx - current_art.get_width() // 2
+    art_y = bobs_hitbox.bottom - current_art.get_height()
+    screen.blit(current_art, (art_x, art_y))
 
     #Darkness overlay
     #screen.blit(darkness, (0,0))
