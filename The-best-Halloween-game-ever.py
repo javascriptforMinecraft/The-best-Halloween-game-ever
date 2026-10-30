@@ -236,7 +236,7 @@ cupboards = [
     pygame.Rect(5100, 100, 100, 100)
 ]
 stove = pygame.Rect(5000, 400, 100, 100)
-house = [fireplace, dining_table]
+house = [fireplace, dining_table, stove]
 house.extend(fireplace_chimney + chair + other_chair + floor + cupboards)
 
 raining_area = pygame.Rect(3000, 0, 10, 600)
