@@ -223,30 +223,30 @@ ceiling = [
     pygame.Rect(2300, 0, 100, 100),
 ]
 cobblestone_floor = [
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100),
-    pygame.Rect(0, 0, 100, 100)
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100),
+    pygame.Rect(0, 500, 100, 100)
 ]
 fireplace = pygame.Rect(3600, 400, 100, 100)
 fireplace_chimney = [
@@ -269,8 +269,12 @@ cupboards = [
     pygame.Rect(5100, 100, 100, 100)
 ]
 stove = pygame.Rect(5000, 400, 100, 100)
+elevator = pygame.Rect(5500, 400, 100, 100)
+elevator_floor = pygame.Rect(5500, 480, 100, 20)
 house = [fireplace, dining_table, stove]
 house.extend(fireplace_chimney + chair + other_chair + floor + cupboards)
+basement = [elevator, elevator_floor]
+basement.extend(cobblestone_floor)
 
 raining_area = pygame.Rect(3000, 0, 10, 600)
 camera_change = pygame.Rect(3670, 0, 10, 600)
@@ -283,7 +287,7 @@ basement_switch = pygame.Rect(5200, 600, 100, 10)
 
 house.append(house_wall_left)
 house.append(house_wall_right)
-house.append(basement_switch)
+basement.append(basement_switch)
 
 #BOB
 bob = pygame.Rect(300, 400, 100, 100)
@@ -445,22 +449,20 @@ while running:
                 house_wall_left.topleft = (-10, -600)
                 house_wall_right.topleft = (2410, -600)
                 basement_switch.topleft = (2200, 600)
+                elevator.topleft = (2200, 400)
+                elevator_floor.topleft = (2200, 180)
                 for k in range(len(fireplace_chimney)):
                     fireplace_chimney[k].topleft = (440, 312 - 100*k)
                 for k in range(len(cobblestone_floor)):
-                    cobblestone_floor[k].topleft = (100*k, -500)
+                    cobblestone_floor[k].topleft = (100*k, 500)
                 alpha_fade(darkness, darkness.get_alpha(), 0, 40)
                 transitioning = False
                 entrance.clear()
                 balcony.clear()
     if bobs_hitbox.colliderect(basement_switch) == True and current_area != "Basement":
         for rect in house:
-            if rect != bob and rect != bobs_hitbox and rect != basement_switch:
-                rect.move_ip(0, 600)
-            else:
-                rect.move_ip(0, -600)
-        for rect in cobblestone_floor:
-            rect.move_ip(0, 600)
+            rect.move_ip(0, -600)
+        elevator_floor.move_ip(0, 300)
         current_area = "Basement"
 
     #Left-Right movement
@@ -472,13 +474,12 @@ while running:
             scroll_x = -5
         isMoving = (key[pygame.K_a] or key[pygame.K_d]) and not transitioning
         if isMoving == True:
-            if bobs_hitbox.bottom >= screen_size[1] - 100:
-                if current_area == "Outside":
-                    sound_to_play = walking_grass
-                elif current_area == "House":
-                    sound_to_play = walking_wood
-                else:
-                    sound_to_play = walking_stone
+            if current_area == "Outside" and bobs_hitbox.bottom >= screen_size[1] - 100:
+                sound_to_play = walking_grass
+            elif current_area == "House" or bobs_hitbox.bottom < screen_size[1] - 100:
+                sound_to_play = walking_wood
+            else:
+                sound_to_play = walking_stone
             if walking_channel.get_sound() != sound_to_play:
                 walking_channel.stop()
                 walking_channel = sound_to_play.play(-1)
@@ -491,13 +492,17 @@ while running:
         if scroll_x != 0:
             if camera_locked == True:
                 future_hitbox = bobs_hitbox.move(-scroll_x, 0)
-                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + cupboards + [dining_table] + [house_wall_right] + [house_wall_left]):
+                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + cupboards + [dining_table] + [house_wall_right] + [house_wall_left] + [elevator_floor]):
                     bobs_hitbox.x -= scroll_x
                 if bobs_hitbox.colliderect(move_left_in_house) == True:
                     for rect in house:
                         rect.move_ip(800, 0)
+                    for rect in basement:
+                        rect.move_ip(800, 0)
                 elif bobs_hitbox.colliderect(move_right_in_house) == True:
                     for rect in house:
+                        rect.move_ip(-800, 0)
+                    for rect in basement:
                         rect.move_ip(-800, 0)
             else:
                 can_scroll = True
@@ -527,7 +532,7 @@ while running:
     velocity_y += gravity
     bobs_hitbox.y += round(velocity_y)
     on_ground = False
-    for rect in gameplay + balcony + floor + [dining_table]:
+    for rect in gameplay + balcony + floor + [dining_table] + [elevator_floor]:
         if bobs_hitbox.colliderect(rect) == False:
             continue
         if velocity_y >= 0 and previous.bottom <= rect.top:
@@ -602,7 +607,7 @@ while running:
         #Lightning logic
         if transitioning == False and current_area != "House":
             lightning_timer = pygame.time.get_ticks()
-            if lightning_timer - remainder_time >= 5000:
+            if lightning_timer - remainder_time >= 10000:
                 lightning_strike = random.randint(0, 5)
                 lightning_backgrounds = [
                     lightning1, lightning2, lightning3,
@@ -643,8 +648,12 @@ while running:
             screen.blit(cupboard_closed_art, rect.topleft)
         for rect in floor + ceiling:
             screen.blit(floorboard_art, rect.topleft)
+
+    #Drawing basement art and doing other basementy things
+    if current_area == "Basement":
         for rect in cobblestone_floor:
             screen.blit(cobblestone_art, rect.topleft)
+        screen.blit(elevator_art, elevator.topleft)
 
     #Drawing BOB
     if isCrouching == True:
