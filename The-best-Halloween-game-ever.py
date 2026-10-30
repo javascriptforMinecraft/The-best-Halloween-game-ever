@@ -49,6 +49,7 @@ lightning4 = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Lightning4.pn
 lightning5 = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Lightning5.png", screen_size)
 lightning6 = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Lightning6.png", screen_size)
 creepy_house = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Creepy House.png", screen_size)
+basement_bg = load_background(ASSETS_DIR / "Art" / "Backgrounds" / "Basement background.png", screen_size)
 
 #Art
 def load_art(art):
@@ -80,6 +81,9 @@ dining_table_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Dining table.png")
 stove_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Stove.png")
 cupboard_closed_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Cupboard closed.png")
 cupboard_open_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Cupboard open.png")
+elevator_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Elevator.png")
+breaker_box_off = load_art(ASSETS_DIR / "Art" / "Objects" / "Breaker box off.png")
+breaker_box_on = load_art(ASSETS_DIR / "Art" / "Objects" / "Breaker box on.png")
 
 #Loading player models
 bob_art = load_art(ASSETS_DIR / "Art" / "BOB" / "BOB.png")
@@ -286,12 +290,12 @@ balcony_fall_distance = 0
 balcony_fell = False
 creaking_played = False
 walking_channel = walking_grass.play()
-inHouse = False
 isStart_of_fadeSet = False
 has_bob_moved_after_transition = False
 inventory = []
 fireplace_state = "Closed"
 current_fireplace_art = fireplace_closed_art
+current_area = "Outside"
 
 #Main loop
 while running:
@@ -347,8 +351,12 @@ while running:
     #Detects which key was pressed
     key = pygame.key.get_pressed()
 
-    #Draw background
+    #Draw background(s)
     screen.blit(outside, (0, 0))
+    if current_area == "House":
+        screen.blit(creepy_house, (0,0))
+    if current_area == "Basement":
+        screen.blit(basement_bg, (0,0))
 
     #Crouch logic
     crouch_request = key[pygame.K_s] and on_ground
@@ -389,7 +397,7 @@ while running:
                 start_of_fade = pygame.time.get_ticks()
                 isStart_of_fadeSet = True
             if pygame.time.get_ticks() - start_of_fade >= 3000:
-                inHouse = True
+                current_area = "House"
                 fireplace.topleft = (400, 400)
                 chair[0].topleft = (250, 300)
                 chair[1].topleft = (1050, 300)
@@ -418,7 +426,7 @@ while running:
             scroll_x = -5
         isMoving = (key[pygame.K_a] or key[pygame.K_d]) and not transitioning
         if isMoving == True:
-            if bobs_hitbox.bottom >= screen_size[1] - 100 and inHouse == False:
+            if bobs_hitbox.bottom >= screen_size[1] - 100 and current_area != "House":
                 sound_to_play = walking_grass
             else:
                 sound_to_play = walking_wood
@@ -485,7 +493,7 @@ while running:
             bobs_hitbox.bottom = rect.top
             velocity_y = 0
             on_ground = True
-    if bobs_hitbox.bottom >= screen_size[1] - 100 and inHouse == False:
+    if bobs_hitbox.bottom >= screen_size[1] - 100 and current_area != "House":
         bobs_hitbox.bottom = screen_size[1] - 100
         velocity_y = 0
         on_ground = True
@@ -518,7 +526,7 @@ while running:
         screen.blit(passable_art, rect.topleft)
     for rect in balcony:
         screen.blit(balcony_art, rect.topleft)
-    if inHouse == False:
+    if current_area != "House":
         if isCrouching == True:
             current_art = crouching_art
         else:
@@ -530,7 +538,7 @@ while running:
     #Raining function
     def raining():
         global rain, outside, lightning_duration, lightning_active, lightning_end_time, remainder_time, darkness, gameplay, passable_gameplay
-        if transitioning == False and inHouse == False:
+        if transitioning == False and current_area != "House":
             darkness.set_alpha(150)
         for drop in rain:
             drop[1] += drop[2]
@@ -550,7 +558,7 @@ while running:
                 2
             )
         #Lightning logic
-        if transitioning == False and inHouse == False:
+        if transitioning == False and current_area != "House":
             lightning_timer = pygame.time.get_ticks()
             if lightning_timer - remainder_time >= 5000:
                 lightning_strike = random.randint(0, 5)
@@ -578,8 +586,7 @@ while running:
         raining()
 
     #Drawing house art
-    if inHouse == True:
-        screen.blit(creepy_house, (0,0))
+    if current_area == "House":
         screen.blit(current_fireplace_art, fireplace.topleft)
         screen.blit(dining_table_art, dining_table.topleft)
         screen.blit(stove_art, stove.topleft)
