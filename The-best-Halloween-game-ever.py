@@ -136,6 +136,8 @@ landing_grass_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Landing on grass.mp
 walking_wood_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on wood.mp3")
 walking_stone_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on stone.mp3")
 fire_alarm_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Fire alarm.mp3")
+electricity_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Electricity on.mp3")
+electricity_channel = pygame.mixer.Channel(3)
 
 #Objects
 darkness = pygame.Surface((800, 600))
@@ -294,6 +296,7 @@ basement_parkour = [
     pygame.Rect(2000, 550, 100, 100),
     pygame.Rect(1700, 760, 50, 50),
     pygame.Rect(1600, 800, 100, 100),
+
     pygame.Rect(1500, 800, 100, 100),
     pygame.Rect(1400, 800, 100, 100),
     pygame.Rect(1300, 700, 50, 50),
@@ -309,11 +312,16 @@ basement_parkour = [
     pygame.Rect(1000, 900, 100, 100),
     pygame.Rect(900, 800, 100, 100),
     pygame.Rect(800, 700, 100, 100),
+
     pygame.Rect(700, 700, 100, 100),
     pygame.Rect(650, 800, 50, 50),
     pygame.Rect(600, 900, 100, 100),
+    pygame.Rect(600, 1000, 100, 100),
     pygame.Rect(300, 900, 100, 100),
-    pygame.Rect(100, 800, 100, 100)
+    pygame.Rect(300, 1000, 100, 100),
+    pygame.Rect(100, 800, 100, 100),
+    pygame.Rect(100, 900, 100, 100),
+    pygame.Rect(100, 1000, 100, 100)
 ]
 breaker_box = pygame.Rect(0, 700, 100, 100)
 coal = pygame.Rect(5500, 400, 100, 100)
@@ -440,9 +448,11 @@ while running:
                         fireplace_state = "Open"
 
                 #Breaker box interaction
-                if bobs_hitbox.colliderect(breaker_box) == True:
-                    lights_on = True
+                if bobs_hitbox.colliderect(breaker_box) == True and lights_on == False:
                     breaker_box_off = breaker_box_on
+                    electricity_channel.play(electricity_sfx, -1)
+                    raining_channel.pause()
+                    lights_on = True
 
                 #Open cupboard
                 for rect in cupboards:
@@ -461,7 +471,10 @@ while running:
                             dialogue_stage = 1
 
                 if bobs_hitbox.colliderect(tome):
-                    tome_opened = True
+                    if tome_opened == False:
+                        tome_opened = True
+                    else:
+                        tome_opened = False
 
             if dialogue_active == True:
                 if dialogue_stage == 1:
