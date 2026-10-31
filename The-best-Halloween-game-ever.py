@@ -17,17 +17,37 @@ clock = pygame.time.Clock()
 pygame.mixer.set_num_channels(32)
 
 #Loading fonts and text objects
-font = pygame.font.SysFont("Retro Pixel", 30)
+instruction_font = pygame.font.SysFont("Retro Pixel", 30)
 dialogue_font = pygame.font.SysFont("Retro Pixel", 25)
 complete_font = pygame.font.SysFont("Retro Pixel", 50)
-instruction_jump = font.render("W to jump", False, (255, 255, 255))
+tome_font = pygame.font.SysFont("Retro Pixel", 30)
+
+instruction_jump = instruction_font.render("W to jump", False, (255, 255, 255))
 instruction_jump_rect = instruction_jump.get_rect(topleft = (200, 300))
-instruction_move = font.render("A/D to move left/right", False, (255, 255, 255))
+instruction_move = instruction_font.render("A/D to move left/right", False, (255, 255, 255))
 instruction_move_rect = instruction_move.get_rect(topleft = (200, 330))
-instruction_crouch = font.render("S to crouch", False, (255, 255, 255))
+instruction_crouch = instruction_font.render("S to crouch", False, (255, 255, 255))
 instruction_crouch_rect = instruction_crouch.get_rect(topleft = (200, 360))
-instruction_interact = font.render("F to interact with things", False, (255, 255, 255))
+instruction_interact = instruction_font.render("F to interact with things", False, (255, 255, 255))
 instruction_interact_rect = instruction_interact.get_rect(topleft = (200, 390))
+
+blargh_dialogue = dialogue_font.render("Want to get out of here?", False, (255, 255, 255))
+yes_dialogue = dialogue_font.render("Yeah! (1)", False, (255, 255, 255))
+no_dialogue = dialogue_font.render("No (2)", False, (255, 255, 255))
+blargh_dialogue_rect = pygame.Rect(150, 350, 500, 150)
+
+level_complete = complete_font.render("LEVEL COMPLETE", False, (255, 255, 255))
+level_complete_rect = level_complete.get_rect(topleft = (50, 375))
+
+tome_content = [
+    tome_font.render("The kitchen floor is weird...", False, (255, 255, 255)),
+    tome_font.render("What's in that cabinet?", False, (255, 255, 255)),
+    tome_font.render("Last I checked, the fireplace was empty...could do with some heat...", False, (255, 255, 255)),
+    tome_font.render("There has to be a fire alarm here somewhere, right?", False, (255, 255, 255)),
+    tome_font.render("BLARGH WAS HERE...he didn't get out", False, (255, 255, 255)),
+    tome_font.render("blargh never really liked noise...", False, (255, 255, 255))
+]
+tome_content_rect = pygame.Rect(25, 25, 750, 550)
 
 #Loading background function
 def load_background(image_path, screen_size):
@@ -96,6 +116,7 @@ bed_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Bed.png")
 blarghs_bed = load_art(ASSETS_DIR / "Art" / "Objects" / "Blargh bed.png")
 blargh_art = load_art(ASSETS_DIR / "Art" / "Objects" / "BLARGH.png")
 blargh_art = pygame.transform.flip(blargh_art, True, False)
+tome_art = load_art(ASSETS_DIR / "Art" / "Objects" / "The tome.png")
 
 #Loading player models
 bob_art = load_art(ASSETS_DIR / "Art" / "BOB" / "BOB.png")
@@ -253,6 +274,7 @@ other_chair = [
     pygame.Rect(3750, 300, 100, 200),
     pygame.Rect(4600, 300, 100, 200)
 ]
+tome = pygame.Rect(5700, 400, 100, 100)
 dining_table = pygame.Rect(4375, 400, 150, 100)
 cupboards = [
     pygame.Rect(5100, 300, 100, 200),
@@ -302,7 +324,7 @@ beds = [
     pygame.Rect(1800, -500, 400, 400)
 ]
 blargh = pygame.Rect(25, -250, 150, 150)
-house = [fireplace, dining_table, stove, blargh]
+house = [fireplace, tome, dining_table, stove, blargh]
 house.extend(fireplace_chimney + chair + other_chair + floor + cupboards + beds)
 basement = [elevator, elevator_floor, breaker_box]
 basement.extend(cobblestone_floor + basement_parkour)
@@ -376,14 +398,9 @@ cupboard_open = False
 coal_in_inventory = False
 lighter_in_inventory = False
 fire_alarm_on = False
+tome_opened = False
 dialogue_active = False
 dialogue_stage = 0
-blargh_dialogue = dialogue_font.render("Want to get out of here?", False, (255, 255, 255))
-yes_dialogue = dialogue_font.render("Yeah! (1)", False, (255, 255, 255))
-no_dialogue = dialogue_font.render("No (2)", False, (255, 255, 255))
-dialogue_box = pygame.Rect(150, 350, 500, 150)
-level_complete = complete_font.render("LEVEL COMPLETE", False, (255, 255, 255))
-level_complete_rect = level_complete.get_rect(topleft = (50, 375))
 completed = False
 
 #Main loop
@@ -436,11 +453,15 @@ while running:
                         coal.topleft = (620, 250)
                         lighter.topleft = (650, 250)
 
+                #Talk to Blargh
                 if bobs_hitbox.colliderect(blargh):
                     if fire_alarm_on == True:
                         if dialogue_active == False:
                             dialogue_active = True
                             dialogue_stage = 1
+
+                if bobs_hitbox.colliderect(tome):
+                    tome_opened = True
 
             if dialogue_active == True:
                 if dialogue_stage == 1:
@@ -595,6 +616,7 @@ while running:
             if pygame.time.get_ticks() - start_of_fade >= 3000:
                 current_area = GROUND_FLOOR
                 fireplace.topleft = (400, 400)
+                tome.topleft = (100, 400)
                 chair[0].topleft = (250, 300)
                 chair[1].topleft = (1050, 300)
                 other_chair[0].topleft = (550, 300)
@@ -812,6 +834,7 @@ while running:
             bobs_hitbox.move_ip(-600, 0)
             has_bob_moved_after_transition = True
         screen.blit(current_fireplace_art, fireplace.topleft)
+        screen.blit(tome_art, tome.topleft)
         screen.blit(dining_table_art, dining_table.topleft)
         screen.blit(stove_art, stove.topleft)
         if lights_on == True:
@@ -863,9 +886,9 @@ while running:
         screen.blit(elevator_art, elevator.topleft)
 
     #Dialogue box
-    if dialogue_active:
-        pygame.draw.rect(screen, (20, 20, 20), dialogue_box)
-        pygame.draw.rect(screen, (255, 255, 255), dialogue_box, 3)
+    if dialogue_active == True:
+        pygame.draw.rect(screen, (20, 20, 20), blargh_dialogue_rect)
+        pygame.draw.rect(screen, (255, 255, 255), blargh_dialogue_rect, 3)
         screen.blit(blargh_dialogue, (175, 370))
         screen.blit(yes_dialogue, (200, 430))
         screen.blit(no_dialogue, (450, 430))
@@ -883,6 +906,14 @@ while running:
     if lights_on == False or current_area == BASEMENT or completed == True:
         screen.blit(darkness, (0,0))
 
+    #The tome
+    if tome_opened == True:
+        pygame.draw.rect(screen, (20, 20, 20), tome_content_rect)
+        pygame.draw.rect(screen, (255, 255, 255), tome_content_rect, 3)
+        for k in range(len(tome_content)):
+            screen.blit(tome_content[k], (75, 75 + 50*k))
+
+    #Escape
     if completed == True:
         alpha_fade(darkness, darkness.get_alpha(), 255, 4)
         screen.blit(level_complete, level_complete_rect)
