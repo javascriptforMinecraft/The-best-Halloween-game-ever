@@ -18,6 +18,8 @@ pygame.mixer.set_num_channels(32)
 
 #Loading fonts and text objects
 font = pygame.font.SysFont("Retro Pixel", 30)
+dialogue_font = pygame.font.SysFont("Retro Pixel", 25)
+complete_font = pygame.font.SysFont("Retro Pixel", 50)
 instruction_jump = font.render("W to jump", False, (255, 255, 255))
 instruction_jump_rect = instruction_jump.get_rect(topleft = (200, 300))
 instruction_move = font.render("A/D to move left/right", False, (255, 255, 255))
@@ -90,6 +92,10 @@ light_bulb_off = load_art(ASSETS_DIR / "Art" / "Objects" / "Light bulb off.png")
 light_bulb_on = load_art(ASSETS_DIR / "Art" / "Objects" / "Light bulb on.png")
 coal_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Lump of coal.png")
 lighter_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Lighter.png")
+bed_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Bed.png")
+blarghs_bed = load_art(ASSETS_DIR / "Art" / "Objects" / "Blargh bed.png")
+blargh_art = load_art(ASSETS_DIR / "Art" / "Objects" / "BLARGH.png")
+blargh_art = pygame.transform.flip(blargh_art, True, False)
 
 #Loading player models
 bob_art = load_art(ASSETS_DIR / "Art" / "BOB" / "BOB.png")
@@ -290,8 +296,14 @@ basement_parkour = [
 breaker_box = pygame.Rect(0, 700, 100, 100)
 coal = pygame.Rect(5500, 400, 100, 100)
 lighter = pygame.Rect(5500, 300, 11, 45)
-house = [fireplace, dining_table, stove]
-house.extend(fireplace_chimney + chair + other_chair + floor + cupboards)
+beds = [
+    pygame.Rect(200, -500, 400, 400),
+    pygame.Rect(1000, -500, 400, 400),
+    pygame.Rect(1800, -500, 400, 400)
+]
+blargh = pygame.Rect(25, -250, 150, 150)
+house = [fireplace, dining_table, stove, blargh]
+house.extend(fireplace_chimney + chair + other_chair + floor + cupboards + beds)
 basement = [elevator, elevator_floor, breaker_box]
 basement.extend(cobblestone_floor + basement_parkour)
 
@@ -364,6 +376,15 @@ cupboard_open = False
 coal_in_inventory = False
 lighter_in_inventory = False
 fire_alarm_on = False
+dialogue_active = False
+dialogue_stage = 0
+blargh_dialogue = dialogue_font.render("Want to get out of here?", False, (255, 255, 255))
+yes_dialogue = dialogue_font.render("Yeah! (1)", False, (255, 255, 255))
+no_dialogue = dialogue_font.render("No (2)", False, (255, 255, 255))
+dialogue_box = pygame.Rect(150, 350, 500, 150)
+level_complete = complete_font.render("LEVEL COMPLETE", False, (255, 255, 255))
+level_complete_rect = level_complete.get_rect(topleft = (50, 375))
+completed = False
 
 #Main loop
 while running:
@@ -406,6 +427,7 @@ while running:
                     lights_on = True
                     breaker_box_off = breaker_box_on
 
+                #Open cupboard
                 for rect in cupboards:
                     if bobs_hitbox.colliderect(rect) == True:
                         cupboard_open = True
@@ -413,6 +435,23 @@ while running:
                             cupboards[k].topleft = (600, 100 + 200*k)
                         coal.topleft = (620, 250)
                         lighter.topleft = (650, 250)
+
+                if bobs_hitbox.colliderect(blargh):
+                    if fire_alarm_on == True:
+                        if dialogue_active == False:
+                            dialogue_active = True
+                            dialogue_stage = 1
+
+            if dialogue_active == True:
+                if dialogue_stage == 1:
+                    if event.key == pygame.K_1:
+                        dialogue_stage = 2
+                        dialogue_active = False
+                        completed = True
+
+                    elif event.key == pygame.K_2:
+                        dialogue_active = False
+                        dialogue_stage = 0
 
             elif event.key == pygame.K_UP:
                 if bobs_hitbox.colliderect(elevator):
@@ -483,7 +522,7 @@ while running:
                 for rect in house:
                     rect.move_ip(0, -600)
                 elevator.move_ip(0, -600)
-                elevator_floor.move_ip(0, 600)
+                elevator_floor.move_ip(0, -600)
                 for rect in basement_parkour:
                     rect.move_ip(0, -600)
                 breaker_box.move_ip(0, -600)
@@ -625,7 +664,7 @@ while running:
         if scroll_x != 0:
             if camera_locked == True:
                 future_hitbox = bobs_hitbox.move(-scroll_x, 0)
-                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + basement_parkour + [dining_table] + [house_wall_right] + [house_wall_left] + [elevator_floor]):
+                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + floor + basement_parkour + [dining_table] + [house_wall_right] + [house_wall_left] + [elevator_floor]):
                     bobs_hitbox.x -= scroll_x
                 if bobs_hitbox.colliderect(move_left_in_house) == True:
                     for rect in house:
@@ -768,7 +807,7 @@ while running:
         isRaining = True
 
     #Drawing house art and doing other housey things
-    if current_area == GROUND_FLOOR or current_area == FIRST_FLOOR:
+    if current_area == GROUND_FLOOR:
         if has_bob_moved_after_transition == False:
             bobs_hitbox.move_ip(-600, 0)
             has_bob_moved_after_transition = True
@@ -798,6 +837,17 @@ while running:
         for rect in floor + ceiling:
             screen.blit(floorboard_art, rect.topleft)
 
+    if current_area == FIRST_FLOOR:
+        for k in range(len(beds)):
+            if k == 0:
+                if fire_alarm_on == False:
+                    screen.blit(blarghs_bed, beds[k].topleft)
+                else:
+                    screen.blit(bed_art, beds[k].topleft)
+                    screen.blit(blargh_art, blargh.topleft)
+            else:
+                screen.blit(bed_art, beds[k].topleft)
+
     #Drawing basement art and doing other basementy things
     if current_area == BASEMENT:
         screen.blit(breaker_box_off, breaker_box.topleft)
@@ -812,6 +862,14 @@ while running:
     if ((current_area == GROUND_FLOOR or current_area == FIRST_FLOOR) and lights_on) == True or current_area == BASEMENT:
         screen.blit(elevator_art, elevator.topleft)
 
+    #Dialogue box
+    if dialogue_active:
+        pygame.draw.rect(screen, (20, 20, 20), dialogue_box)
+        pygame.draw.rect(screen, (255, 255, 255), dialogue_box, 3)
+        screen.blit(blargh_dialogue, (175, 370))
+        screen.blit(yes_dialogue, (200, 430))
+        screen.blit(no_dialogue, (450, 430))
+
     #Drawing BOB
     if isCrouching == True:
         current_art = crouching_art
@@ -822,10 +880,13 @@ while running:
     screen.blit(current_art, (art_x, art_y))
 
     #Darkness overlay
-    #if lights_on == False or current_area == BASEMENT:
-        #screen.blit(darkness, (0,0))
+    if lights_on == False or current_area == BASEMENT or completed == True:
+        screen.blit(darkness, (0,0))
 
-    print(current_area)
+    if completed == True:
+        alpha_fade(darkness, darkness.get_alpha(), 255, 4)
+        screen.blit(level_complete, level_complete_rect)
+        pygame.mixer.stop()
 
     #Refresh rate
     pygame.display.flip()
