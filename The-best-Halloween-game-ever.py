@@ -86,6 +86,8 @@ elevator_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Elevator.png")
 breaker_box_off = load_art(ASSETS_DIR / "Art" / "Objects" / "Breaker box off.png")
 breaker_box_on = load_art(ASSETS_DIR / "Art" / "Objects" / "Breaker box on.png")
 cobblestone_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Cobblestone.png")
+light_bulb_off = load_art(ASSETS_DIR / "Art" / "Objects" / "Light bulb off.png")
+light_bulb_on = load_art(ASSETS_DIR / "Art" / "Objects" / "Light bulb on.png")
 
 #Loading player models
 bob_art = load_art(ASSETS_DIR / "Art" / "BOB" / "BOB.png")
@@ -224,30 +226,8 @@ ceiling = [
     pygame.Rect(2300, 0, 100, 100),
 ]
 cobblestone_floor = [
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100),
-    pygame.Rect(0, 500, 100, 100)
+    pygame.Rect(100 * k, 500, 100, 100)
+    for k in range(24)
 ]
 fireplace = pygame.Rect(3600, 400, 100, 100)
 fireplace_chimney = [
@@ -269,6 +249,7 @@ cupboards = [
     pygame.Rect(5100, 300, 100, 200),
     pygame.Rect(5100, 100, 100, 100)
 ]
+light_bulb = pygame.Rect(375, 100, 50, 50)
 stove = pygame.Rect(5000, 400, 100, 100)
 elevator = pygame.Rect(5500, 400, 100, 100)
 elevator_floor = pygame.Rect(5500, 480, 100, 20)
@@ -363,7 +344,15 @@ has_bob_moved_after_transition = False
 inventory = []
 fireplace_state = "Closed"
 current_fireplace_art = fireplace_closed_art
-current_area = "Outside"
+OUTSIDE = "Outside"
+BASEMENT = "Basement"
+GROUND_FLOOR = "Ground floor"
+FIRST_FLOOR = "First floor"
+current_area = OUTSIDE
+lights_on = False
+elevator_moving = False
+elevator_move_distance = 0
+elevator_speed = 3
 
 #Main loop
 while running:
@@ -401,6 +390,85 @@ while running:
                         current_fireplace_art = fireplace_open_art
                         fireplace_state = "Open"
 
+                #Breaker box interaction
+                if bobs_hitbox.colliderect(breaker_box) == True:
+                    lights_on = True
+                    breaker_box_off = breaker_box_on
+
+            elif event.key == pygame.K_UP:
+                if bobs_hitbox.colliderect(elevator):
+                    if lights_on == True:
+                        if elevator_moving == False:
+                            if current_area == BASEMENT:
+                                elevator_move_distance = 0
+                                elevator_speed = 3
+                                elevator_moving = True
+
+                            elif current_area == GROUND_FLOOR:
+                                elevator_move_distance = 0
+                                elevator_speed = 3
+                                elevator_moving = True
+
+            elif event.key == pygame.K_DOWN:
+                if bobs_hitbox.colliderect(elevator):
+                    if lights_on == True:
+                        if elevator_moving == False:
+                            if current_area == FIRST_FLOOR:
+                                elevator_move_distance = 0
+                                elevator_speed = -3
+                                elevator_moving = True
+
+                            elif current_area == GROUND_FLOOR:
+                                elevator_move_distance = 0
+                                elevator_speed = -3
+                                elevator_moving = True
+
+    def elevator_arrived():
+        global current_area, elevator_moving
+        elevator_moving = False
+        if elevator_speed > 0:
+            if current_area == BASEMENT:
+                current_area = GROUND_FLOOR
+            elif current_area == GROUND_FLOOR:
+                current_area = FIRST_FLOOR
+        elif elevator_speed < 0:
+            if current_area == FIRST_FLOOR:
+                current_area = GROUND_FLOOR
+            elif current_area == GROUND_FLOOR:
+                current_area = BASEMENT
+
+    # Moving the elevator
+    if elevator_moving:
+        move_y = elevator_speed
+        if elevator_speed > 0:
+            move_y = min(elevator_speed, 600 - elevator_move_distance)
+        else:
+            move_y = max(elevator_speed, -600 - elevator_move_distance)
+        elevator.y -= move_y
+        elevator_floor.y -= move_y
+        bobs_hitbox.y -= move_y
+        elevator_move_distance += move_y
+        if abs(elevator_move_distance) >= 600:
+            elevator_arrived()
+            if elevator_speed > 0:
+                for rect in house:
+                    rect.move_ip(0, 600)
+                    if rect == bob or rect == bobs_hitbox:
+                        rect.move_ip(0, -100)
+                elevator.move_ip(0, 600)
+                elevator_floor.move_ip(0, 600)
+                for rect in basement_parkour:
+                    rect.move_ip(0, 600)
+                breaker_box.move_ip(0, 600)
+            elif elevator_speed < 0:
+                for rect in house:
+                    rect.move_ip(0, -600)
+                elevator.move_ip(0, -600)
+                elevator_floor.move_ip(0, 600)
+                for rect in basement_parkour:
+                    rect.move_ip(0, -600)
+                breaker_box.move_ip(0, -600)
+
     #Alpha fade function
     def alpha_fade(surface, current_alpha, target_alpha, fade_speed):
         if current_alpha < target_alpha:
@@ -423,9 +491,9 @@ while running:
     screen.blit(outside, (0, 0))
     if isRaining == True:
         raining()
-    if current_area == "House":
+    if current_area == GROUND_FLOOR:
         screen.blit(creepy_house, (0,0))
-    if current_area == "Basement":
+    if current_area == BASEMENT:
         screen.blit(basement_bg, (0,0))
 
     #Crouch logic
@@ -467,7 +535,7 @@ while running:
                 start_of_fade = pygame.time.get_ticks()
                 isStart_of_fadeSet = True
             if pygame.time.get_ticks() - start_of_fade >= 3000:
-                current_area = "House"
+                current_area = GROUND_FLOOR
                 fireplace.topleft = (400, 400)
                 chair[0].topleft = (250, 300)
                 chair[1].topleft = (1050, 300)
@@ -486,20 +554,18 @@ while running:
                 elevator_floor.topleft = (2200, 180)
                 for k in range(len(fireplace_chimney)):
                     fireplace_chimney[k].topleft = (440, 312 - 100*k)
-                for k in range(len(cobblestone_floor)):
-                    cobblestone_floor[k].topleft = (100*k, 500)
-                alpha_fade(darkness, darkness.get_alpha(), 0, 40)
+                alpha_fade(darkness, darkness.get_alpha(), 240, 20)
                 transitioning = False
                 entrance.clear()
                 balcony.clear()
-    if bobs_hitbox.colliderect(basement_switch) == True and current_area != "Basement":
+    if bobs_hitbox.colliderect(basement_switch) == True and current_area != BASEMENT:
         for rect in house:
             rect.move_ip(0, -600)
         elevator_floor.move_ip(0, 300)
         for rect in basement_parkour:
             rect.move_ip(0, -600)
         breaker_box.move_ip(0, -600)
-        current_area = "Basement"
+        current_area = BASEMENT
 
     #Left-Right movement
     scroll_x = 0
@@ -510,9 +576,9 @@ while running:
             scroll_x = -7
         isMoving = (key[pygame.K_a] or key[pygame.K_d]) and not transitioning
         if isMoving == True:
-            if current_area == "Outside" and bobs_hitbox.bottom >= screen_size[1] - 100:
+            if current_area == OUTSIDE and bobs_hitbox.bottom >= screen_size[1] - 100:
                 sound_to_play = walking_grass
-            elif current_area == "House" or bobs_hitbox.bottom < screen_size[1] - 100:
+            elif current_area == GROUND_FLOOR or bobs_hitbox.bottom < screen_size[1] - 100:
                 sound_to_play = walking_wood
             else:
                 sound_to_play = walking_stone
@@ -583,7 +649,7 @@ while running:
             bobs_hitbox.bottom = rect.top
             velocity_y = 0
             on_ground = True
-    if bobs_hitbox.bottom >= screen_size[1] - 100 and current_area != "House":
+    if bobs_hitbox.bottom >= screen_size[1] - 100 and current_area != GROUND_FLOOR:
         bobs_hitbox.bottom = screen_size[1] - 100
         velocity_y = 0
         on_ground = True
@@ -615,13 +681,13 @@ while running:
         screen.blit(passable_art, rect.topleft)
     for rect in balcony:
         screen.blit(balcony_art, rect.topleft)
-    if current_area == "Outside":
+    if current_area == OUTSIDE:
         screen.blit(door_art, door.topleft)
 
     #Raining function
     def raining():
         global rain, outside, lightning_duration, lightning_active, lightning_end_time, remainder_time, darkness, gameplay, passable_gameplay
-        if transitioning == False:
+        if transitioning == False and current_area == OUTSIDE:
             darkness.set_alpha(150)
         for drop in rain:
             drop[1] += drop[2]
@@ -652,13 +718,17 @@ while running:
                 outside = lightning_backgrounds[lightning_strike]
                 thunder_sfx.play()
                 lightning_active = True
-                darkness.set_alpha(0)
+                if current_area != BASEMENT:
+                    darkness.set_alpha(0)
                 lightning_end_time = lightning_timer + lightning_duration
                 remainder_time = lightning_timer
             if lightning_active and lightning_timer >= lightning_end_time:
                 outside = stormy_outside
                 lightning_active = False
-                darkness.set_alpha(150)
+                if current_area == OUTSIDE:
+                    darkness.set_alpha(150)
+                else:
+                    darkness.set_alpha(240)
 
     #Activate raining
     if bob.colliderect(raining_area) == True and isRaining == False:
@@ -667,13 +737,17 @@ while running:
         isRaining = True
 
     #Drawing house art and doing other housey things
-    if current_area == "House":
+    if current_area == GROUND_FLOOR or current_area == FIRST_FLOOR:
         if has_bob_moved_after_transition == False:
             bobs_hitbox.move_ip(-600, 0)
             has_bob_moved_after_transition = True
         screen.blit(current_fireplace_art, fireplace.topleft)
         screen.blit(dining_table_art, dining_table.topleft)
         screen.blit(stove_art, stove.topleft)
+        if lights_on == True:
+            screen.blit(light_bulb_on, light_bulb.topleft)
+        else:
+            screen.blit(light_bulb_off, light_bulb.topleft)
         for rect in chair:
             screen.blit(chair_art, rect.topleft)
         for rect in other_chair:
@@ -686,8 +760,7 @@ while running:
             screen.blit(floorboard_art, rect.topleft)
 
     #Drawing basement art and doing other basementy things
-    if current_area == "Basement":
-        screen.blit(elevator_art, elevator.topleft)
+    if current_area == BASEMENT:
         screen.blit(breaker_box_off, breaker_box.topleft)
         for rect in cobblestone_floor:
             screen.blit(cobblestone_art, rect.topleft)
@@ -696,6 +769,9 @@ while running:
                 screen.blit(small_crate, rect.topleft)
             else:
                 screen.blit(crate, rect.topleft)
+
+    if ((current_area == GROUND_FLOOR or current_area == FIRST_FLOOR) and lights_on) == True or current_area == BASEMENT:
+        screen.blit(elevator_art, elevator.topleft)
 
     #Drawing BOB
     if isCrouching == True:
@@ -707,7 +783,8 @@ while running:
     screen.blit(current_art, (art_x, art_y))
 
     #Darkness overlay
-    #screen.blit(darkness, (0,0))
+    #if lights_on == False or current_area == BASEMENT:
+        #screen.blit(darkness, (0,0))
 
     #Refresh rate
     pygame.display.flip()
