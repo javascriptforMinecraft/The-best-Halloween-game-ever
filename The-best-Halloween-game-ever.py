@@ -62,6 +62,7 @@ def load_art(art):
 
 #Loading art
 crate = load_art(ASSETS_DIR / "Art" / "Objects" / "Crate.png")
+small_crate = load_art(ASSETS_DIR / "Art" / "Objects" / "Small crate.png")
 not_pressed_button_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Button (not pressed).png")
 not_pressed_button_art = pygame.transform.rotate(not_pressed_button_art, 90)
 pressed_button_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Button (pressed).png")
@@ -271,10 +272,42 @@ cupboards = [
 stove = pygame.Rect(5000, 400, 100, 100)
 elevator = pygame.Rect(5500, 400, 100, 100)
 elevator_floor = pygame.Rect(5500, 480, 100, 20)
+basement_parkour = [
+    pygame.Rect(2000, 1000, 100, 100),
+    pygame.Rect(1900, 1000, 100, 100),
+    pygame.Rect(1700, 1000, 100, 100),
+    pygame.Rect(1700, 900, 100, 100),
+    pygame.Rect(1950, 800, 100, 100),
+    pygame.Rect(2050, 700, 100, 100),
+    pygame.Rect(2000, 550, 100, 100),
+    pygame.Rect(1700, 760, 50, 50),
+    pygame.Rect(1600, 800, 100, 100),
+    pygame.Rect(1500, 800, 100, 100),
+    pygame.Rect(1400, 800, 100, 100),
+    pygame.Rect(1300, 700, 50, 50),
+    pygame.Rect(1350, 700, 50, 50),
+    pygame.Rect(1250, 700, 50, 50),
+    pygame.Rect(1350, 600, 50, 50),
+    pygame.Rect(1200, 800, 50, 50),
+    pygame.Rect(1200, 1000, 100, 100),
+    pygame.Rect(1250, 950, 50, 50),
+    pygame.Rect(1400, 800, 100, 100),
+    pygame.Rect(1400, 1000, 100, 100),
+    pygame.Rect(1100, 1000, 100, 100),
+    pygame.Rect(1000, 900, 100, 100),
+    pygame.Rect(900, 800, 100, 100),
+    pygame.Rect(800, 700, 100, 100),
+    pygame.Rect(700, 700, 100, 100),
+    pygame.Rect(650, 800, 50, 50),
+    pygame.Rect(600, 900, 100, 100),
+    pygame.Rect(300, 900, 100, 100),
+    pygame.Rect(100, 800, 100, 100)
+]
+breaker_box = pygame.Rect(0, 700, 100, 100)
 house = [fireplace, dining_table, stove]
 house.extend(fireplace_chimney + chair + other_chair + floor + cupboards)
-basement = [elevator, elevator_floor]
-basement.extend(cobblestone_floor)
+basement = [elevator, elevator_floor, breaker_box]
+basement.extend(cobblestone_floor + basement_parkour)
 
 raining_area = pygame.Rect(3000, 0, 10, 600)
 camera_change = pygame.Rect(3670, 0, 10, 600)
@@ -406,7 +439,7 @@ while running:
         standing_box.bottom = bobs_hitbox.bottom
         blocked_above = any(
             standing_box.colliderect(rect)
-            for rect in gameplay
+            for rect in gameplay + basement_parkour
         )
         if not blocked_above:
             isCrouching = False
@@ -463,15 +496,18 @@ while running:
         for rect in house:
             rect.move_ip(0, -600)
         elevator_floor.move_ip(0, 300)
+        for rect in basement_parkour:
+            rect.move_ip(0, -600)
+        breaker_box.move_ip(0, -600)
         current_area = "Basement"
 
     #Left-Right movement
     scroll_x = 0
     if transitioning == False:
         if key[pygame.K_a] == True:
-            scroll_x = 5
+            scroll_x = 7
         elif key[pygame.K_d] == True:
-            scroll_x = -5
+            scroll_x = -7
         isMoving = (key[pygame.K_a] or key[pygame.K_d]) and not transitioning
         if isMoving == True:
             if current_area == "Outside" and bobs_hitbox.bottom >= screen_size[1] - 100:
@@ -492,7 +528,7 @@ while running:
         if scroll_x != 0:
             if camera_locked == True:
                 future_hitbox = bobs_hitbox.move(-scroll_x, 0)
-                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + cupboards + [dining_table] + [house_wall_right] + [house_wall_left] + [elevator_floor]):
+                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + cupboards + basement_parkour + [dining_table] + [house_wall_right] + [house_wall_left] + [elevator_floor]):
                     bobs_hitbox.x -= scroll_x
                 if bobs_hitbox.colliderect(move_left_in_house) == True:
                     for rect in house:
@@ -532,7 +568,7 @@ while running:
     velocity_y += gravity
     bobs_hitbox.y += round(velocity_y)
     on_ground = False
-    for rect in gameplay + balcony + floor + [dining_table] + [elevator_floor]:
+    for rect in gameplay + balcony + floor + basement_parkour + [dining_table] + [elevator_floor]:
         if bobs_hitbox.colliderect(rect) == False:
             continue
         if velocity_y >= 0 and previous.bottom <= rect.top:
@@ -605,7 +641,7 @@ while running:
                 2
             )
         #Lightning logic
-        if transitioning == False and current_area != "House":
+        if transitioning == False:
             lightning_timer = pygame.time.get_ticks()
             if lightning_timer - remainder_time >= 10000:
                 lightning_strike = random.randint(0, 5)
@@ -651,9 +687,15 @@ while running:
 
     #Drawing basement art and doing other basementy things
     if current_area == "Basement":
+        screen.blit(elevator_art, elevator.topleft)
+        screen.blit(breaker_box_off, breaker_box.topleft)
         for rect in cobblestone_floor:
             screen.blit(cobblestone_art, rect.topleft)
-        screen.blit(elevator_art, elevator.topleft)
+        for rect in basement_parkour:
+            if rect.width == 50:
+                screen.blit(small_crate, rect.topleft)
+            else:
+                screen.blit(crate, rect.topleft)
 
     #Drawing BOB
     if isCrouching == True:
