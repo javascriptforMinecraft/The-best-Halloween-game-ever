@@ -88,6 +88,8 @@ breaker_box_on = load_art(ASSETS_DIR / "Art" / "Objects" / "Breaker box on.png")
 cobblestone_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Cobblestone.png")
 light_bulb_off = load_art(ASSETS_DIR / "Art" / "Objects" / "Light bulb off.png")
 light_bulb_on = load_art(ASSETS_DIR / "Art" / "Objects" / "Light bulb on.png")
+coal_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Lump of coal.png")
+lighter_art = load_art(ASSETS_DIR / "Art" / "Objects" / "Lighter.png")
 
 #Loading player models
 bob_art = load_art(ASSETS_DIR / "Art" / "BOB" / "BOB.png")
@@ -102,10 +104,11 @@ click_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Button clicked.mp3")
 thunder_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Thunder.mp3")
 balcony_creaking_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Balcony creaking.mp3")
 creaking_channel = pygame.mixer.Channel(1)
-walking_grass = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on grass.mp3")
-landing_grass = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Landing on grass.mp3")
-walking_wood = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on wood.mp3")
-walking_stone = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on stone.mp3")
+walking_grass_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on grass.mp3")
+landing_grass_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Landing on grass.mp3")
+walking_wood_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on wood.mp3")
+walking_stone_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on stone.mp3")
+fire_alarm_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Fire alarm.mp3")
 
 #Objects
 darkness = pygame.Surface((800, 600))
@@ -285,6 +288,8 @@ basement_parkour = [
     pygame.Rect(100, 800, 100, 100)
 ]
 breaker_box = pygame.Rect(0, 700, 100, 100)
+coal = pygame.Rect(5500, 400, 100, 100)
+lighter = pygame.Rect(5500, 300, 11, 45)
 house = [fireplace, dining_table, stove]
 house.extend(fireplace_chimney + chair + other_chair + floor + cupboards)
 basement = [elevator, elevator_floor, breaker_box]
@@ -298,9 +303,11 @@ house_wall_right = pygame.Rect(5000, -600, 10, 1800)
 move_left_in_house = pygame.Rect(4500, 0, 10, 600)
 move_right_in_house = pygame.Rect(5300, 0, 10, 600)
 basement_switch = pygame.Rect(5200, 600, 100, 10)
+fire_alarm_check = pygame.Rect(5600, 0, 10, 600)
 
 house.append(house_wall_left)
 house.append(house_wall_right)
+house.append(fire_alarm_check)
 basement.append(basement_switch)
 
 #BOB
@@ -338,7 +345,7 @@ balcony_falling = False
 balcony_fall_distance = 0
 balcony_fell = False
 creaking_played = False
-walking_channel = walking_grass.play()
+walking_channel = walking_grass_sfx.play()
 isStart_of_fadeSet = False
 has_bob_moved_after_transition = False
 inventory = []
@@ -353,6 +360,10 @@ lights_on = False
 elevator_moving = False
 elevator_move_distance = 0
 elevator_speed = 3
+cupboard_open = False
+coal_in_inventory = False
+lighter_in_inventory = False
+fire_alarm_on = False
 
 #Main loop
 while running:
@@ -383,10 +394,10 @@ while running:
                     elif "Coal" in inventory and fireplace_state == "Open":
                         current_fireplace_art = fireplace_with_coal_art
                         fireplace_state = "Contains Coal"
-                    elif fireplace_state == "Open":
+                    elif fireplace_state != "Closed":
                         current_fireplace_art = fireplace_closed_art
                         fireplace_state = "Closed"
-                    else:
+                    elif fireplace_state not in ["Contains Coal", "Lit"]:
                         current_fireplace_art = fireplace_open_art
                         fireplace_state = "Open"
 
@@ -394,6 +405,14 @@ while running:
                 if bobs_hitbox.colliderect(breaker_box) == True:
                     lights_on = True
                     breaker_box_off = breaker_box_on
+
+                for rect in cupboards:
+                    if bobs_hitbox.colliderect(rect) == True:
+                        cupboard_open = True
+                        for k in range(len(cupboards)):
+                            cupboards[k].topleft = (600, 100 + 200*k)
+                        coal.topleft = (620, 250)
+                        lighter.topleft = (650, 250)
 
             elif event.key == pygame.K_UP:
                 if bobs_hitbox.colliderect(elevator):
@@ -491,7 +510,7 @@ while running:
     screen.blit(outside, (0, 0))
     if isRaining == True:
         raining()
-    if current_area == GROUND_FLOOR:
+    if current_area == GROUND_FLOOR or current_area == FIRST_FLOOR:
         screen.blit(creepy_house, (0,0))
     if current_area == BASEMENT:
         screen.blit(basement_bg, (0,0))
@@ -552,6 +571,9 @@ while running:
                 basement_switch.topleft = (2200, 600)
                 elevator.topleft = (2200, 400)
                 elevator_floor.topleft = (2200, 180)
+                coal.topleft = (2200, 400)
+                lighter.topleft = (2245, 340)
+                fire_alarm_check.topleft = (800, 0)
                 for k in range(len(fireplace_chimney)):
                     fireplace_chimney[k].topleft = (440, 312 - 100*k)
                 alpha_fade(darkness, darkness.get_alpha(), 240, 20)
@@ -566,6 +588,15 @@ while running:
             rect.move_ip(0, -600)
         breaker_box.move_ip(0, -600)
         current_area = BASEMENT
+    if bobs_hitbox.colliderect(coal) == True and coal_in_inventory == False:
+        inventory.append("Coal")
+        coal_in_inventory = True
+    if bobs_hitbox.colliderect(lighter) == True and lighter_in_inventory == False:
+        inventory.append("Lighter")
+        lighter_in_inventory = True
+    if bobs_hitbox.colliderect(fire_alarm_check) == True and fire_alarm_on == False and fireplace_state == "Lit":
+        fire_alarm_sfx.play(-1)
+        fire_alarm_on = True
 
     #Left-Right movement
     scroll_x = 0
@@ -577,11 +608,11 @@ while running:
         isMoving = (key[pygame.K_a] or key[pygame.K_d]) and not transitioning
         if isMoving == True:
             if current_area == OUTSIDE and bobs_hitbox.bottom >= screen_size[1] - 100:
-                sound_to_play = walking_grass
+                sound_to_play = walking_grass_sfx
             elif current_area == GROUND_FLOOR or bobs_hitbox.bottom < screen_size[1] - 100:
-                sound_to_play = walking_wood
+                sound_to_play = walking_wood_sfx
             else:
-                sound_to_play = walking_stone
+                sound_to_play = walking_stone_sfx
             if walking_channel.get_sound() != sound_to_play:
                 walking_channel.stop()
                 walking_channel = sound_to_play.play(-1)
@@ -594,7 +625,7 @@ while running:
         if scroll_x != 0:
             if camera_locked == True:
                 future_hitbox = bobs_hitbox.move(-scroll_x, 0)
-                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + cupboards + basement_parkour + [dining_table] + [house_wall_right] + [house_wall_left] + [elevator_floor]):
+                if not any(future_hitbox.colliderect(rect) for rect in gameplay + balcony + entrance + basement_parkour + [dining_table] + [house_wall_right] + [house_wall_left] + [elevator_floor]):
                     bobs_hitbox.x -= scroll_x
                 if bobs_hitbox.colliderect(move_left_in_house) == True:
                     for rect in house:
@@ -667,9 +698,9 @@ while running:
         if balcony_fall_distance >= 200:
             balcony_falling = False
             balcony_fell = True
-            landing_grass.play()
+            landing_grass_sfx.play()
 
-    #Drawing most of the custom art onscreen
+    #Drawing Outside art on screen
     screen.blit(instruction_jump, instruction_jump_rect)
     screen.blit(instruction_move, instruction_move_rect)
     screen.blit(instruction_crouch, instruction_crouch_rect)
@@ -755,7 +786,15 @@ while running:
         for rect in fireplace_chimney:
             screen.blit(fireplace_chimney_art, rect.topleft)
         for rect in cupboards:
-            screen.blit(cupboard_closed_art, rect.topleft)
+            if cupboard_open == False:
+                screen.blit(cupboard_closed_art, rect.topleft)
+            else:
+                screen.blit(cupboard_open_art, rect.topleft)
+        if cupboard_open == True:
+            if coal_in_inventory == False:
+                screen.blit(coal_art, coal.topleft)
+            if lighter_in_inventory == False:
+                screen.blit(lighter_art, lighter.topleft)
         for rect in floor + ceiling:
             screen.blit(floorboard_art, rect.topleft)
 
@@ -785,6 +824,8 @@ while running:
     #Darkness overlay
     #if lights_on == False or current_area == BASEMENT:
         #screen.blit(darkness, (0,0))
+
+    print(current_area)
 
     #Refresh rate
     pygame.display.flip()
