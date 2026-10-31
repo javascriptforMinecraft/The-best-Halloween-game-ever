@@ -136,7 +136,7 @@ landing_grass_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Landing on grass.mp
 walking_wood_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on wood.mp3")
 walking_stone_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Walking on stone.mp3")
 fire_alarm_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Fire alarm.mp3")
-electricity_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Electricity on.mp3")
+electricity_sfx = pygame.mixer.Sound(ASSETS_DIR / "SFX" / "Static.mp3")
 electricity_channel = pygame.mixer.Channel(3)
 
 #Objects
@@ -451,7 +451,6 @@ while running:
                 if bobs_hitbox.colliderect(breaker_box) == True and lights_on == False:
                     breaker_box_off = breaker_box_on
                     electricity_channel.play(electricity_sfx, -1)
-                    raining_channel.pause()
                     lights_on = True
 
                 #Open cupboard
